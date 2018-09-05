@@ -9,6 +9,8 @@ express()
   // .get('/', (req, res) => res.render('pages/index'))
   .get('/', function(req, res){
     //https://polar-sands-88575.herokuapp.com/?buyer_email={{ order.buyer_email }}&buyer_name={{ order.buyer_name }}&order_id={{ order.id }}&product_id={{ product.id }}&product_name={{ product.name }}
+    console.log(req.params);
+    console.log('-------');
     var order_id = req.query.order_id;
     var product_id = req.query.product_id;
     var product_name = req.query.product_name;
@@ -19,4 +21,4 @@ express()
     console.log('product_name: '+product_name);
     console.log('signature: '+signature);
   })
-  .listen(PORT, () => console.log(`Listening on ${ PORT }`))
+  .listen(PORT, () => console.log(`We're listening on ${ PORT }`))
