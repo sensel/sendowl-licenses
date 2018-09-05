@@ -5,13 +5,15 @@ const PORT = process.env.PORT || 5000
 //set in heroku https://devcenter.heroku.com/articles/config-vars using https://www.sendowl.com/settings/api_credentials
 var SOKEY = process.env.SO_KEY;
 var SOSECRET = process.env.SO_SECRET;
-
-//console.log(process.env);
+const ISLOCAL = process.env.LOCAL;
 
 //for testing
-var tSO_SECRET='t0ps3cr3t';
-var tSO_KEY='publicStr';
+if(ISLOCAL){
+  SOKEY='publicStr';
+  SOSECRET='t0ps3cr3t';
+}
 
+//is there a problem?
 if(!SOKEY){
   console.log('SO_KEY '+SOKEY);
 }
@@ -50,5 +52,3 @@ express()
     console.log('crypto_hash: '+crypto_hash);
   })
   .listen(PORT, () => console.log(`We're listening on ${ PORT }`))
-
-//localhost:5000/?buyer_email=junk&buyer_name=junk&order_id=junk&product_id=junk&product_name=junk&signature=12345
