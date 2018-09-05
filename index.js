@@ -1,3 +1,4 @@
+//require('dotenv').load();
 const express = require('express')
 const path = require('path')
 const PORT = process.env.PORT || 5000
@@ -5,7 +6,7 @@ const PORT = process.env.PORT || 5000
 var SOKEY = process.env.SO_KEY;
 var SOSECRET = process.env.SO_SECRET;
 
-//console.log(process.env);
+console.log(process.env);
 
 //for testing
 var tSO_SECRET='t0ps3cr3t';
