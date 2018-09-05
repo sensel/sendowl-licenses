@@ -4,6 +4,10 @@ const PORT = process.env.PORT || 5000
 //set in heroku https://devcenter.heroku.com/articles/config-vars using https://www.sendowl.com/settings/api_credentials
 const SO_KEY = process.env.SO_KEY;
 const SO_SECRET = process.env.SO_SECRET;
+//for testing
+var tSO_SECRET='t0ps3cr3t';
+var tSO_KEY='publicStr';
+
 if(SO_KEY==undefined){
   console.log('SO_KEY undef');
 }
@@ -29,7 +33,8 @@ express()
     var product_name = req.query.product_name;
     var signature = req.query.signature;
     var params_ordered = 'buyer_email='+buyer_email+'&buyer_name'+buyer_name+'&order_id'+order_id+'&product_id'+product_id+'&product_name'+product_name;
-    var crypto_text = params_ordered+'&secret'+SO_SECRET;
+    //var params_ordered = 'buyer_email=test@test.com&buyer_name=Test Man&order_id=12345&product_id=123';
+    var crypto_text = params_ordered+'&secret='+tSO_SECRET;
     var crypto_key = SO_KEY+'&'+SO_SECRET;
     var crypto_hash = crypto.createHmac('sha1', crypto_key).update(crypto_text).digest('base64');
     console.log('buyer_email: '+buyer_email);
