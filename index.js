@@ -15,5 +15,6 @@ express()
     var buyer_email = req.query.buyer_email;
     var signature = req.query.signature;
     console.log('buyer_email: '+buyer_email);
+    console.log('SIG: '+signature);
   })
   .listen(PORT, () => console.log(`Listening on ${ PORT }`))
