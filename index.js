@@ -45,7 +45,7 @@ express()
     console.log('buyer_name: '+buyer_name);
     console.log('order_id: '+order_id);
     console.log('product_id: '+product_id);
-    console.log('product_name: '+product_name);
+    //console.log('product_name: '+product_name);
     console.log('signature: '+signature);
     console.log('crypto_hash: '+crypto_hash);
   })
