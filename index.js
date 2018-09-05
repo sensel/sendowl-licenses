@@ -27,18 +27,18 @@ express()
   // .set('view engine', 'ejs')
   // .get('/', (req, res) => res.render('pages/index'))
   .get('/', function(req, res){
-    //https://polar-sands-88575.herokuapp.com/?buyer_email={{ order.buyer_email }}&buyer_name={{ order.buyer_name }}&order_id={{ order.id }}&product_id={{ product.id }}&product_name={{ product.name }}
+    //https://polar-sands-88575.herokuapp.com/?buyer_email={{ order.buyer_email }}&buyer_name={{ order.buyer_name }}&order_id={{ order.id }}&product_id={{ product.id }}
     console.log(req.params);
     console.log('-------');
     var buyer_email = req.query.buyer_email;
     var buyer_name = req.query.buyer_name;
     var order_id = req.query.order_id;
     var product_id = req.query.product_id;
-    var product_name = req.query.product_name;
+    //var product_name = req.query.product_name;
     var signature = req.query.signature;
-    var params_ordered = 'buyer_email='+buyer_email+'&buyer_name'+buyer_name+'&order_id'+order_id+'&product_id'+product_id+'&product_name'+product_name;
+    var params_ordered = 'buyer_email='+buyer_email+'&buyer_name='+buyer_name+'&order_id='+order_id+'&product_id='+product_id; //+'&product_name='+product_name;
     //var params_ordered = 'buyer_email=test@test.com&buyer_name=Test Man&order_id=12345&product_id=123';
-    var crypto_text = params_ordered+'&secret='+tSO_SECRET;
+    var crypto_text = params_ordered+'&secret='+SOSECRET;
     var crypto_key = SOKEY+'&'+SOSECRET;
     var crypto_hash = crypto.createHmac('sha1', crypto_key).update(crypto_text).digest('base64');
     console.log('buyer_email: '+buyer_email);
