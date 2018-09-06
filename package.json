@@ -8,7 +8,8 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
-    "express": "^4.15.2"
+    "express": "^4.15.2",
+    "locallydb": "0.0.9"
   },
   "keywords": [],
   "author": "Peter Nyboer",

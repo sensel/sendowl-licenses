@@ -1,2 +1,4 @@
 node_modules/
 .env
+arturia_test.txt
+makedb.js
