@@ -28,7 +28,11 @@ if(!SOSECRET){
 const dbname='db/dbtest'
 var Datastore = require('nedb')
   , db = new Datastore({ filename: dbname, autoload: true });
-
+db.find({}}, function (err, docs) {
+  console.log("-------db---------");
+  console.log(docs);
+  console.log("----------------");
+});
 
 var calc_sig = function (req,res){
   //https://polar-sands-88575.herokuapp.com/?buyer_email={{ order.buyer_email }}&buyer_name={{ order.buyer_name }}&order_id={{ order.id }}&product_id={{ product.id }}
@@ -53,6 +57,7 @@ var calc_sig = function (req,res){
     order_invalid();
   }
 }
+
 var sn;
 var uc;
 function proc_order(email,name,o_id,p_id){
