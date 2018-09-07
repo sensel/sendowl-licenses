@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "express": "^4.15.2",
-    "locallydb": "0.0.9"
+    "nedb": "1.8.0"
   },
   "keywords": [],
   "author": "Peter Nyboer",

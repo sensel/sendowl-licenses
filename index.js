@@ -1,5 +1,4 @@
 
-var locallydb = require('locallydb');
 var crypto = require('crypto');
 const express = require('express')
 const path = require('path')
@@ -7,6 +6,7 @@ const PORT = process.env.PORT || 5000
 //set in heroku https://devcenter.heroku.com/articles/config-vars using https://www.sendowl.com/settings/api_credentials
 var SOKEY = process.env.SO_KEY;
 var SOSECRET = process.env.SO_SECRET;
+//only set locally
 const ISLOCAL = process.env.LOCAL;
 
 //for testing http://localhost:5000/?order_id=12345&buyer_name=Test+Man&buyer_email=test%40test.com&product_id=123&signature=QpIEZjEmEMZV%2FHYtinoOj5bqAFw%3D
@@ -23,9 +23,11 @@ if(!SOSECRET){
   console.log('SO_SECRET '+SOSECRET);
 }
 
-// load the database (folder) in './db', will be created if doesn't exist
-var db = new locallydb('./db');
-var collection = db.collection('arturia');
+// https://github.com/louischatriot/nedb
+// Type 3: Persistent datastore with automatic loading
+const dbname='db/dbtest'
+var Datastore = require('nedb')
+  , db = new Datastore({ filename: dbname, autoload: true });
 
 
 var calc_sig = function (req,res){
@@ -44,17 +46,38 @@ var calc_sig = function (req,res){
   for(i in req.query){
     console.log(i+': '+req.query[i]+'\r');
   }
+  //coming from SendOwl?
   if(crypto_hash==signature){
-    proc_order();
+    proc_order(buyer_email,buyer_name,order_id,product_id);
   }else{
     order_invalid();
   }
 }
-
-function proc_order(){
+var sn;
+var uc;
+function proc_order(email,name,o_id,p_id){
   console.log("processing order");
-
-
+  // find the first record where there is no order ID and update it with the new info
+  db.findOne({ order_id: '' }, function (err, onedoc) {
+    console.log(onedoc);
+    console.log(".................");
+    var temp=onedoc._id;
+    sn=onedoc.serial;
+    uc=onedoc.unlock_code;
+    db.update({ _id: temp }, { $set: { order_id: o_id } }, { multi: false }, function (err, numReplaced) {
+      console.log('order_id added');
+    });
+    db.update({ _id: temp }, { $set: { product_id: p_id } }, { multi: false }, function (err, numReplaced) {
+      console.log('product_id added');
+    });
+    db.update({ _id: temp }, { $set: { customer_email: email } }, { multi: false }, function (err, numReplaced) {
+      console.log('customer_email added');
+    });
+    db.update({ _id: temp }, { $set: { customer_name: name } }, { multi: false }, function (err, numReplaced) {
+      console.log('customer_name added');
+    });
+  });
+  console.log('your sn and unlock are '+sn+' -- '+uc);
 }
 
 function order_invalid(){
