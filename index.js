@@ -28,10 +28,8 @@ if(!SOSECRET){
 const dbname='db/dbtest'
 var Datastore = require('nedb')
   , db = new Datastore({ filename: dbname, autoload: true });
-db.find({}}, function (err, docs) {
-  console.log("-------db---------");
-  console.log(docs);
-  console.log("----------------");
+db.count({}, function (err, count) {
+  console.log('db count '+count)
 });
 
 var calc_sig = function (req,res){
