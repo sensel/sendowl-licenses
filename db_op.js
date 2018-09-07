@@ -8,6 +8,9 @@ const source='arturia_test.txt'
 var Datastore = require('nedb')
   , db = new Datastore({ filename: dbname, autoload: true });
 
+db.count({}, function (err, count) {
+  console.log('db count '+count)
+});
 //query {order_id:''}
 function printfinds(query){
   db.find(query, function (err, docs) {
