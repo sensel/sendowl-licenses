@@ -29,7 +29,7 @@ const dbname='db/dbtest'
 var Datastore = require('nedb')
   , db = new Datastore({ filename: dbname, autoload: true });
 db.count({}, function (err, count) {
-  console.log('db count '+count)
+  console.log('db count '+count);
 });
 
 var calc_sig = function (req,res){
@@ -67,6 +67,7 @@ function proc_order(email,name,o_id,p_id){
     var temp=onedoc._id;
     sn=onedoc.serial;
     uc=onedoc.unlock_code;
+    //update database
     db.update({ _id: temp }, { $set: { order_id: o_id } }, { multi: false }, function (err, numReplaced) {
       console.log('order_id added');
     });
@@ -79,8 +80,9 @@ function proc_order(email,name,o_id,p_id){
     db.update({ _id: temp }, { $set: { customer_name: name } }, { multi: false }, function (err, numReplaced) {
       console.log('customer_name added');
     });
+    //satisfy order
+    console.log('your sn and unlock are '+sn+' -- '+uc);
   });
-  console.log('your sn and unlock are '+sn+' -- '+uc);
 }
 
 function order_invalid(){
