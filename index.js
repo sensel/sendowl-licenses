@@ -32,6 +32,8 @@ db.count({}, function (err, count) {
   console.log('db count '+count);
 });
 
+//parse values from URL and check if signature is valid from SendOwl.
+//if so process the order.
 var calc_sig = function (req,res){
   //https://polar-sands-88575.herokuapp.com/?buyer_email={{ order.buyer_email }}&buyer_name={{ order.buyer_name }}&order_id={{ order.id }}&product_id={{ product.id }}
   console.log('----Calculating Signature---');
@@ -48,7 +50,7 @@ var calc_sig = function (req,res){
   for(i in req.query){
     console.log(i+': '+req.query[i]+'\r');
   }
-  //coming from SendOwl?
+  //coming from SendOwl? true or false!
   if(crypto_hash==signature){
     proc_order(buyer_email,buyer_name,order_id,product_id);
   }else{
@@ -89,6 +91,7 @@ function order_invalid(){
   console.log("ORDER INVALID")
 }
 
+// create a server that listens for URLs with order info.
 express()
   .use(express.static(path.join(__dirname, 'public')))
   // .set('views', path.join(__dirname, 'views'))
