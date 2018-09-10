@@ -52,7 +52,7 @@ var calc_sig = function (req,res){
   }
   //coming from SendOwl? true or false!
   if(crypto_hash==signature){
-    proc_order(buyer_email,buyer_name,order_id,product_id);
+    proc_order(buyer_email,buyer_name,order_id,product_id,res);
   }else{
     order_invalid();
   }
@@ -60,7 +60,7 @@ var calc_sig = function (req,res){
 
 var sn;
 var uc;
-function proc_order(email,name,o_id,p_id){
+function proc_order(email,name,o_id,p_id,res){
   console.log("processing order");
   // find the first record where there is no order ID and update it with the new info
   db.findOne({ order_id: '' }, function (err, onedoc) {
@@ -84,6 +84,8 @@ function proc_order(email,name,o_id,p_id){
     });
     //satisfy order
     console.log('your sn and unlock are '+sn+' -- '+uc);
+    res.send('Serial Number: '+sn+' | Unlock Code: '+uc);
+
   });
 }
 
