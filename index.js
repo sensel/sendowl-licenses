@@ -35,7 +35,8 @@ db.count({}, function (err, count) {
 //parse values from URL and check if signature is valid from SendOwl.
 //if so process the order.
 var calc_sig = function (req,res){
-  //https://polar-sands-88575.herokuapp.com/?buyer_email={{ order.buyer_email }}&buyer_name={{ order.buyer_name }}&order_id={{ order.id }}&product_id={{ product.id }}&variant={{ shopify_variant_id }}
+  //https://polar-sands-88575.herokuapp.com/?buyer_email={{ order.buyer_email }}&buyer_name={{ order.buyer_name }}&order_id={{ order.id }}&product_id={{ product.id }}&variant={{ shopify_variant_id }}&overlay=xxx
+  //overlay: none, innovators, videoediting, musicproduction, piano, drumpad
   console.log('----Calculating Signature---');
   var buyer_email = req.query.buyer_email;
   var buyer_name = req.query.buyer_name;
@@ -44,7 +45,7 @@ var calc_sig = function (req,res){
   var variant_id = req.query.variant;
   //var product_name = req.query.product_name;
   var signature = req.query.signature;
-  var params_ordered = 'buyer_email='+buyer_email+'&buyer_name='+buyer_name+'&order_id='+order_id+'&product_id='+product_id+'&variant='+variant_id; //+'&product_name='+product_name;
+  var params_ordered = 'buyer_email='+buyer_email+'&buyer_name='+buyer_name+'&order_id='+order_id+'&overlay='+overlay+'&product_id='+product_id+'&variant='+variant_id; //+'&product_name='+product_name;
   var crypto_text = params_ordered+'&secret='+SOSECRET;
   var crypto_key = SOKEY+'&'+SOSECRET;
   var crypto_hash = crypto.createHmac('sha1', crypto_key).update(crypto_text).digest('base64');
@@ -73,9 +74,6 @@ function proc_order(email,name,o_id,p_id,res){
     //update database
     db.update({ _id: temp }, { $set: { order_id: o_id } }, { multi: false }, function (err, numReplaced) {
       console.log('order_id added');
-    });
-    db.update({ _id: temp }, { $set: { variant_id: o_id } }, { multi: false }, function (err, numReplaced) {
-      console.log('variant_id added');
     });
     db.update({ _id: temp }, { $set: { product_id: p_id } }, { multi: false }, function (err, numReplaced) {
       console.log('product_id added');
