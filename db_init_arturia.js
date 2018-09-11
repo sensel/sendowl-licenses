@@ -10,7 +10,7 @@ var counter = 0;
 require('fs').readFileSync(source).toString().split('\n').forEach(function (line) {
   var snum = line.split(',')[0];
   var unlock = line.split(',')[1];
-  db.insert({"serial":snum,"unlock_code":unlock,"customer_name":"","customer_email":"","order_id":"","product_id":""});
+  db.insert({"serial":snum,"unlock_code":unlock,"customer_name":"","customer_email":"","order_id":"","product_id":"","variant_id":""});
   counter++;
 })
 
