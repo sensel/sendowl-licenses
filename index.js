@@ -84,7 +84,7 @@ function proc_order(email,name,o_id,p_id,res){
     });
     //satisfy order
     console.log('your sn and unlock are '+sn+' -- '+uc);
-    res.send('Serial Number: '+sn+' | Unlock Code: '+uc+'<br>'+'some other <em> stuff</em>');
+    res.send('Serial Number: '+sn+' | Unlock Code: '+uc+'<br>'+'some other <a href="http://bitwig.com"> stuff</a>');
 
 
   });
