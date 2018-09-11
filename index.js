@@ -41,6 +41,7 @@ var calc_sig = function (req,res){
   var buyer_email = req.query.buyer_email;
   var buyer_name = req.query.buyer_name;
   var order_id = req.query.order_id;
+  var overlay = req.query.overlay
   var product_id = req.query.product_id;
   var variant_id = req.query.variant;
   //var product_name = req.query.product_name;
