@@ -71,6 +71,7 @@ var calc_sig = function (req,res){
   }
 }
 
+//lots of nested functions due relying on callbacks. I'm sure there's a nice way to do this, but this works.
 function proc_order(req,gets_bw,res){
   console.log("processing order");
   // find the first record where there is no order ID and update it with the new info
@@ -121,6 +122,7 @@ function find_and_update (req,err,onedoc,db_select){
   dbs.update({ _id: temp }, { $set: { customer_name: name } }, { multi: false }, function (err, numReplaced) {
     console.log('customer_name added');
   });
+
   return lic;
 }
 
