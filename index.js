@@ -25,18 +25,25 @@ if(!SOSECRET){
 
 // https://github.com/louischatriot/nedb
 // Type 3: Persistent datastore with automatic loading
-const dbname='db/dbtest'
-var Datastore = require('nedb')
-  , db = new Datastore({ filename: dbname, autoload: true });
-db.count({}, function (err, count) {
-  console.log('db count '+count);
+const db_bitwig_name='db/bwig_test';
+const db_arturia_name='db/bwig_test';
+var Datastore = require('nedb');
+var db = {};
+var db.bitwig = new Datastore({ filename: db_bitwig_name, autoload: true });
+var db.arturia = new Datastore({ filename: db_arturia_name, autoload: true });
+db.bitwig.count({}, function (err, count) {
+  console.log('Bitwig db count '+count);
+});
+db.arturia.count({}, function (err, count) {
+  console.log('Artuira db count '+count);
 });
 
 //parse values from URL and check if signature is valid from SendOwl.
 //if so process the order.
 var calc_sig = function (req,res){
   //https://polar-sands-88575.herokuapp.com/?buyer_email={{ order.buyer_email }}&buyer_name={{ order.buyer_name }}&order_id={{ order.id }}&product_id={{ product.id }}&variant={{ shopify_variant_id }}&overlay=xxx
-  //overlay: none, innovators, videoediting, musicproduction, piano, drumpad
+  //overlay: none, innovators, videoediting, musicproduction, piano, drumpad, gaming, qwerty, azerty, dvorak, thunder
+
   console.log('----Calculating Signature---');
   var buyer_email = req.query.buyer_email;
   var buyer_name = req.query.buyer_name;
@@ -53,46 +60,72 @@ var calc_sig = function (req,res){
   for(i in req.query){
     console.log(i+': '+req.query[i]+'\r');
   }
+  //eligible for a Bitwig Studio 8 Track license?
+  var gets_bw = (overlay=='innovators' || overlay=='musicproduction' || overlay=='piano' || overlay=='drumpad' || overlay=='thunder')
   //coming from SendOwl? true or false!
   if(crypto_hash==signature){
-    proc_order(buyer_email,buyer_name,order_id,product_id,res);
+    proc_order(buyer_email,buyer_name,order_id,product_id,gets_bw,res);
   }else{
-    order_invalid();
+    order_invalid(res);
+
   }
 }
 
 var sn;
 var uc;
-function proc_order(email,name,o_id,p_id,res){
+function proc_order(email,name,o_id,p_id,gets_bw,res){
   console.log("processing order");
   // find the first record where there is no order ID and update it with the new info
-  db.findOne({ order_id: '' }, function (err, onedoc) {
+  db.arturia.findOne({ order_id: '' }, function (err, onedoc) {
     console.log(onedoc);
     console.log(".................");
     var temp=onedoc._id;
     sn=onedoc.serial;
     uc=onedoc.unlock_code;
     //update database
-    db.update({ _id: temp }, { $set: { order_id: o_id } }, { multi: false }, function (err, numReplaced) {
+    db.arturia.update({ _id: temp }, { $set: { order_id: o_id } }, { multi: false }, function (err, numReplaced) {
       console.log('order_id added');
     });
-    db.update({ _id: temp }, { $set: { product_id: p_id } }, { multi: false }, function (err, numReplaced) {
+    db.arturia.update({ _id: temp }, { $set: { product_id: p_id } }, { multi: false }, function (err, numReplaced) {
       console.log('product_id added');
     });
-    db.update({ _id: temp }, { $set: { customer_email: email } }, { multi: false }, function (err, numReplaced) {
+    db.arturia.update({ _id: temp }, { $set: { customer_email: email } }, { multi: false }, function (err, numReplaced) {
       console.log('customer_email added');
     });
-    db.update({ _id: temp }, { $set: { customer_name: name } }, { multi: false }, function (err, numReplaced) {
+    db.arturia.update({ _id: temp }, { $set: { customer_name: name } }, { multi: false }, function (err, numReplaced) {
       console.log('customer_name added');
     });
+
     //satisfy order
-    console.log('your sn and unlock are '+sn+' -- '+uc);
+    console.log('your Arturia sn and unlock are '+sn+' -- '+uc);
     res.send('Serial Number: '+sn+' | Unlock Code: '+uc+'<br>'+'some other <a href="http://bitwig.com"> stuff</a>');
   });
 }
 
+function find_and_update(err,onedoc,db_select){
+  console.log(onedoc);
+  console.log(".................");
+  var temp=onedoc._id;
+  sn=onedoc.serial;
+  uc=onedoc.unlock_code;
+  dbs = db_select;
+  //update database
+  dbs.update({ _id: temp }, { $set: { order_id: o_id } }, { multi: false }, function (err, numReplaced) {
+    console.log('order_id added');
+  });
+  dbs.update({ _id: temp }, { $set: { product_id: p_id } }, { multi: false }, function (err, numReplaced) {
+    console.log('product_id added');
+  });
+  dbs.update({ _id: temp }, { $set: { customer_email: email } }, { multi: false }, function (err, numReplaced) {
+    console.log('customer_email added');
+  });
+  dbs.update({ _id: temp }, { $set: { customer_name: name } }, { multi: false }, function (err, numReplaced) {
+    console.log('customer_name added');
+}
+
 function order_invalid(){
   console.log("ORDER INVALID")
+  res.send('This order was determined to be invalid.');
 }
 
 // create a server that listens for URLs with order info.

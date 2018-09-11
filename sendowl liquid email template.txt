@@ -1,0 +1,27 @@
+Hi{% if order.receiver_name %} {{ order.receiver_first_name }}{% endif %},
+
+<h3>Thanks for ordering from us.</h3>
+We're excited to offer you a free copy of Arturia Analog Lite with your purchase of a music overlay.
+It's filled with fantastic sounds and presets designed to sound great with your Sensel Morph.
+
+Your Order ID is {{ order.id }}{% if order.settled_gross %} . A receipt has been emailed to you separately.{% endif %}
+
+{% assign product_types = order.cart.cart_items | map: 'product' | map: 'member_types' | flatten %}
+{% if product_types contains 'tangible' %}
+You have ordered tangible goods. These will be posted shortly and you will be notified once they have been dispatched.
+{% endif %}
+
+{% if product_types contains 'digital' or product_types contains 'software' or product_types contains 'redirect' %}
+<!--license and information comes from HTML response from heroku app-->
+<b>
+{% for license in order.licenses %}{{ license.key }}
+{% endfor %}{% endif %}
+{% endif %}
+</b>
+{% if product_types contains 'service' %}
+You have ordered service goods. The merchant will be in contact to arrange the carrying out of these services.
+{% endif %}
+
+Thanks,
+
+The SendOwl
