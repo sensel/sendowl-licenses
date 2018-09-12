@@ -1,14 +1,14 @@
 Hi{% if order.receiver_name %} {{ order.receiver_first_name }}{% endif %},
 
-<h3>Thanks for ordering from us.</h3>
-We're excited to offer you a free copy of Arturia Analog Lite with your purchase of a music overlay.
-It's filled with fantastic sounds and presets designed to sound great with your Sensel Morph.
+<h3>Thanks for ordering a Sensel Morph</h3>
 
-Your Order ID is {{ order.id }}{% if order.settled_gross %} . A receipt has been emailed to you separately.{% endif %}
+Your Order ID is {{ order.id }}{% if order.settled_gross %} . A receipt for your hardware has been emailed to you separately.{% endif %}
 
-{% assign product_types = order.cart.cart_items | map: 'product' | map: 'member_types' | flatten %}
-{% if product_types contains 'tangible' %}
-You have ordered tangible goods. These will be posted shortly and you will be notified once they have been dispatched.
+We're excited to offer you a free copy of Arturia Analog Lab Lite. You’ll need to visit the <a href=“https://www.arturia.com/support/included-analog-lab-lite-quickstart”>Analog Lab Lite quickstart page</a> to download and activate with the Serial Number and Unlock Code we provide below. This software is an amazing collection of pianos and synthesizers that sound amazing.
+
+<!--check if it is a variant that gets bitwig-->
+{%if product.shopify_variant_id contains ‘1245155917831’ or product.shopify_variant_id contains ‘1245155917832’ %}
+We're excited to offer you a free copy of Bitwig Studio 8-Track. You’ll need to visit the <a href=“https://www.bitwig.com/download”>Bitwig download page</a> to download. <a href="https://www.bitwig.com/en/account/register.html">Register</a> and activate with the Serial Number we provide below. Bitwig Studio 8-Track is an incredible DAW that lets you take full advantage of the Morph's pressure sensitive surface.
 {% endif %}
 
 {% if product_types contains 'digital' or product_types contains 'software' or product_types contains 'redirect' %}
