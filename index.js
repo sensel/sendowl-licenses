@@ -41,7 +41,7 @@ db.arturia.count({}, function (err, count) {
 //parse values from URL and check if signature is valid from SendOwl.
 //if so process the order.
 var calc_sig = function (req,res){
-  //https://polar-sands-88575.herokuapp.com/?buyer_email={{ order.buyer_email }}&buyer_name={{ order.buyer_name }}&order_id={{ order.id }}&product_id={{ product.id }}&variant={{ shopify_variant_id }}&overlay=xxx
+  //https://polar-sands-88575.herokuapp.com/?buyer_email={{ order.buyer_email }}&buyer_name={{ order.buyer_name }}&order_id={{ order.id }}&product_id={{ product.id }}&variant={{ product.shopify_variant_id }}&overlay=xxx
   //overlay: none, innovators, videoediting, musicproduction, piano, drumpad, gaming, qwerty, azerty, dvorak, thunder
 
   console.log('----Calculating Signature---');
