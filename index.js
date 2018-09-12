@@ -79,7 +79,7 @@ function proc_order(req,gets_bw,res){
     var license = [];
     license = find_and_update(req,err,onedoc,db.arturia);
     //satisfy order
-    console.log('your Arturia sn and unlock are '+license[0]+' -- '+license[1]);
+    console.log('++ Arturia sn and unlock are '+license[0]+' | '+license[1]);
     var response_msg = '<p>You can access your FREE copy of Analog Lab Lite from the <a href="https://www.arturia.com/support/included-analog-lab-lite-quickstart">Arturia website.</a><br>Follow the instructions and use your serial and unlock codes:<br>Arturia Analog Lab Lite Serial Number: '+license[0]+' | Unlock Code: '+license[1]+'<p>'
     //bitwig for those who are eligible
     if(gets_bw){
@@ -87,12 +87,14 @@ function proc_order(req,gets_bw,res){
       db.bitwig.findOne({ order_id: '' }, function (err, onedoc) {
         license = find_and_update(req,err,onedoc,db.bitwig);
         //satisfy order
-        console.log('your Bitwig sn is '+license[0]);
+        console.log('++ Bitwig sn is '+license[0]);
         response_msg = response_msg+'<p>You can access your FREE copy of Bitwig Studio 8-Track from the <a href="https://www.bitwig.com/en/download.html">Bitwig website.</a><br><a href="https://www.bitwig.com/en/account/register.html">Create an account</a> and register this serial number: '+license[0]+'<br>You will then be able to authorize your computer for Studio 8-Track.</p>'
         res.send(response_msg);
+        console.log('** BITWIG AND ARTUIRA SENT')
       });
     }else{
       res.send(response_msg);
+      console.log('** ONLY ARTUIRA SENT')
     }
   });
 }
