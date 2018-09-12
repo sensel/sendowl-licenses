@@ -82,7 +82,7 @@ function proc_order(req,gets_bw,res){
     console.log('++ Arturia sn and unlock are '+license[0]+' | '+license[1]);
     //var response_msg = 'ARTURIA LICENSE ...';
     //var response_msg = 'You can access your FREE copy of Analog Lab Lite from the <a href="https://www.arturia.com/support/included-analog-lab-lite-quickstart">Arturia website.</a><br>Follow the instructions and use your serial and unlock codes:<br>Arturia Analog Lab Lite Serial Number: '+license[0]+' | Unlock Code: '+license[1]+'<br>';
-    var response_msg = 'Arturia Analog Lab Lite Serial Number: '+license[0]+' | Unlock Code: '+license[1]+'<br>';
+    var response_msg = '<br><a href="https://www.arturia.com/support/included-analog-lab-lite-quickstart">Arturia</a> Analog Lab Lite Serial Number: '+license[0]+' | Unlock Code: '+license[1]+'<br>';
     //bitwig for those who are eligible
     if(gets_bw){
       console.log('>>>gets bitwig')
