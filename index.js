@@ -62,7 +62,7 @@ var calc_sig = function (req,res){
     console.log(i+': '+req.query[i]+'\r');
   }
   //eligible for a Bitwig Studio 8 Track license?
-  var gets_bw = (overlay=='innovators' || overlay=='musicproduction' || overlay=='piano' || overlay=='drumpad' || overlay=='thunder')
+  var gets_bw = (overlay=='innovators' || overlay=='musicproduction' || overlay=='piano' || overlay=='drumpad' || overlay=='thunder'|| overlay=='switzerland')
   //coming from SendOwl? true or false!
   if(crypto_hash==signature){
     proc_order(req,gets_bw,res);
