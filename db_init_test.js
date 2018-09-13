@@ -20,7 +20,6 @@ require('fs').readFileSync(source).toString().split('\n').forEach(function (line
   db_ar.insert({"serial":snum,"unlock_code":unlock,"customer_name":"","customer_email":"","order_id":"","product_id":"","variant_id":""});
   counter++;
 })
-
 console.log('Arturia completed with '+counter+' records');
 
 ///create test db for Bitwig
@@ -37,5 +36,11 @@ require('fs').readFileSync(source).toString().split('\n').forEach(function (line
   db_bw.insert({"serial":snum,"customer_name":"","customer_email":"","order_id":"","product_id":"","variant_id":""});
   counter++;
 })
-
 console.log('Bitwig completed with '+counter+' records');
+
+db_bw.count({ order_id: '' }, function (err, count) {
+  console.log('remaining bitwig:'+count);
+});
+db_ar.count({ order_id: '' }, function (err, count) {
+  console.log('remaining arturia:'+count);
+});
