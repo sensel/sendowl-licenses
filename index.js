@@ -1,14 +1,17 @@
 
+require('dotenv').config();
 var crypto = require('crypto');
-const express = require('express')
-const path = require('path')
-const PORT = process.env.PORT || 5000
+const nodemailer = require('nodemailer');
+const express = require('express');
+const path = require('path');
+const PORT = process.env.PORT || 5000;
 //set in heroku https://devcenter.heroku.com/articles/config-vars using https://www.sendowl.com/settings/api_credentials
 var SOKEY = process.env.SO_KEY;
 var SOSECRET = process.env.SO_SECRET;
 //only set locally
 const ISLOCAL = process.env.LOCAL;
-
+const EMAIL = process.env.EMAIL_USER;
+const EPASS = process.env.EMAIL_PASS;
 //for testing http://localhost:5000/?order_id=12345&buyer_name=Test+Man&buyer_email=test%40test.com&product_id=123&variant=0&overlay=piano&signature=zWh3BvsRmbxHrZWj78uYGCMzd7Q%3D
 if(ISLOCAL){
   SOKEY='publicStr';
@@ -27,16 +30,19 @@ if(!SOSECRET){
 // Type 3: Persistent datastore with automatic loading
 const db_bitwig_name='db/bwig_test';
 const db_arturia_name='db/art_test';
+const db_count_name='db/count_test';
 var Datastore = require('nedb');
 var db = {};
 db.bitwig = new Datastore({ filename: db_bitwig_name, autoload: true });
 db.arturia = new Datastore({ filename: db_arturia_name, autoload: true });
-db.bitwig.count({}, function (err, count) {
-  console.log('Bitwig db count '+count);
-});
-db.arturia.count({}, function (err, count) {
-  console.log('Artuira db count '+count);
-});
+db.counter = new Datastore({ filename: db_count_name, autoload: true });
+
+// db.bitwig.count({}, function (err, count) {
+//   console.log('Bitwig db count '+count);
+// });
+// db.arturia.count({}, function (err, count) {
+//   console.log('Artuira db count '+count);
+// });
 
 //parse values from URL and check if signature is valid from SendOwl.
 //if so process the order.
@@ -69,17 +75,18 @@ var calc_sig = function (req,res){
   }else{
     order_invalid(res);
   }
+  check_counts();
 }
 
 //lots of nested functions due relying on callbacks. I'm sure there's a nice way to do this, but this works.
 function proc_order(req,gets_bw,res){
   console.log("processing order");
+  db.arturia.count({ order_id: '' })
   // find the first record where there is no order ID and update it with the new info
   db.arturia.findOne({ order_id: '' }, function (err, onedoc) {
     if(onedoc!=null){
       var license = [];
       license = find_and_update(req,err,onedoc,db.arturia);
-
       //satisfy order
       console.log('++ Arturia sn and unlock are '+license[0]+' | '+license[1]);
       //var response_msg = 'ARTURIA LICENSE ...';
@@ -144,12 +151,59 @@ function find_and_update (req,err,onedoc,db_select){
   return lic;
 }
 
+function check_counts(){
+  db.bitwig.count({ order_id: '' }, function (err, count) {
+    console.log('remaining bitwig:'+count);
+    if(count<10){
+      mailOptions.subject='Bitwig Serial count is < 10';
+      mailOptions.text='Bitwig Serial count is < 10';
+      sendemail();
+    }
+  });
+  db.arturia.count({ order_id: '' }, function (err, count) {
+    console.log('remaining arturia:'+count);
+    if(count<10){
+      mailOptions.subject='Arturia Serial count is < 10';
+      mailOptions.text='Arturia Serial count is < 10';
+      sendemail();
+    }
+  });
+}
 
 function order_invalid(res){
   console.log("ORDER INVALID")
   res.send('This order was determined to be invalid.');
 }
 
+///SETUP Email service
+var transporter = nodemailer.createTransport({
+    host: 'sub5.mail.dreamhost.com',
+    port: 465,
+    secure: true,
+    auth: {
+        user: EMAIL,
+        pass: EPASS
+    }
+});
+// setup email data with unicode symbols
+var mailOptions = {
+    from: '"Node App" <node@nbor.us>', // sender address
+    to: 'p@nbor.us', // list of receivers
+    subject: 'From Node App', // Subject line
+    text: 'Hello world', // plain text body
+};
+
+// send mail with defined transport object
+function sendemail(){
+    transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+            return console.log(error);
+        }
+        console.log('Message sent: %s', info.messageId);
+    });
+}
+//check the serial counts on start:
+check_counts();
 // create a server that listens for URLs with order info.
 express()
   .use(express.static(path.join(__dirname, 'public')))
