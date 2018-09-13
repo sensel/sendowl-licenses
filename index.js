@@ -76,28 +76,41 @@ function proc_order(req,gets_bw,res){
   console.log("processing order");
   // find the first record where there is no order ID and update it with the new info
   db.arturia.findOne({ order_id: '' }, function (err, onedoc) {
-    var license = [];
-    license = find_and_update(req,err,onedoc,db.arturia);
-    //satisfy order
-    console.log('++ Arturia sn and unlock are '+license[0]+' | '+license[1]);
-    //var response_msg = 'ARTURIA LICENSE ...';
-    //var response_msg = 'You can access your FREE copy of Analog Lab Lite from the <a href="https://www.arturia.com/support/included-analog-lab-lite-quickstart">Arturia website.</a><br>Follow the instructions and use your serial and unlock codes:<br>Arturia Analog Lab Lite Serial Number: '+license[0]+' | Unlock Code: '+license[1]+'<br>';
-    var response_msg = '<br>Arturia Analog Lab Lite Serial Number: '+license[0]+' | Unlock Code: '+license[1]+'<br>';
-    //bitwig for those who are eligible
-    if(gets_bw){
-      console.log('>>>gets bitwig')
-      db.bitwig.findOne({ order_id: '' }, function (err, onedoc) {
-        license = find_and_update(req,err,onedoc,db.bitwig);
-        //satisfy order
-        console.log('++ Bitwig sn is '+license[0]);
-        //response_msg = response_msg+'AND BITWIG TOO';
-        response_msg = response_msg+'Bitwig Studio 8 Track serial number: '+license[0];
+    if(onedoc!=null){
+      var license = [];
+      license = find_and_update(req,err,onedoc,db.arturia);
+
+      //satisfy order
+      console.log('++ Arturia sn and unlock are '+license[0]+' | '+license[1]);
+      //var response_msg = 'ARTURIA LICENSE ...';
+      //var response_msg = 'You can access your FREE copy of Analog Lab Lite from the <a href="https://www.arturia.com/support/included-analog-lab-lite-quickstart">Arturia website.</a><br>Follow the instructions and use your serial and unlock codes:<br>Arturia Analog Lab Lite Serial Number: '+license[0]+' | Unlock Code: '+license[1]+'<br>';
+      var response_msg = '<br>Arturia Analog Lab Lite Serial Number: '+license[0]+' | Unlock Code: '+license[1]+'<br>';
+      //bitwig for those who are eligible
+      if(gets_bw){
+        console.log('>>>gets bitwig')
+        db.bitwig.findOne({ order_id: '' }, function (err, onedoc) {
+          if(onedoc!=null){
+            license = find_and_update(req,err,onedoc,db.bitwig);
+            //satisfy order
+            console.log('++ Bitwig sn is '+license[0]);
+            //response_msg = response_msg+'AND BITWIG TOO';
+            response_msg = response_msg+'Bitwig Studio 8 Track serial number: '+license[0];
+            res.send(response_msg);
+            console.log('** BITWIG AND ARTUIRA SENT');
+          }else{
+            console.log('Need More Bitwig Serial Numbers');
+            //better to have no response and let SendOwl send us a warning.
+            //res.send('Please contact support@sensel.com for your license.');
+          }
+        });
+      }else{
         res.send(response_msg);
-        console.log('** BITWIG AND ARTUIRA SENT')
-      });
+        console.log('** ONLY ARTUIRA SENT')
+      }
     }else{
-      res.send(response_msg);
-      console.log('** ONLY ARTUIRA SENT')
+      console.log('Need More Arturia Serial Numbers and Unlock Codes');
+      //better to have no response and let SendOwl send us a warning.
+      //res.send('Please contact support@sensel.com for your license.');
     }
   });
 }
@@ -130,6 +143,7 @@ function find_and_update (req,err,onedoc,db_select){
 
   return lic;
 }
+
 
 function order_invalid(res){
   console.log("ORDER INVALID")
