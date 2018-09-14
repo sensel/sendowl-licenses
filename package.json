@@ -12,7 +12,8 @@
     "dotenv": "6.0.0",
     "express": "^4.15.2",
     "nedb": "1.8.0",
-    "nodemailer": "4.6.8"
+    "nodemailer": "4.6.8",
+    "shopify-validate": "1.0.0"
   },
   "keywords": [],
   "author": "Peter Nyboer",

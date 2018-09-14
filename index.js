@@ -11,7 +11,7 @@ const PORT = process.env.PORT || 5000;
 //set in heroku https://devcenter.heroku.com/articles/config-vars using https://www.sendowl.com/settings/api_credentials
 var SOKEY = process.env.SO_KEY;
 var SOSECRET = process.env.SO_SECRET;
-var SHOPSECRET = process.env.SHOPIFY_SHARED_SECRET;
+const SHOPSECRET = process.env.SHOPIFY_SHARED_SECRET;
 //only set locally
 const ISLOCAL = process.env.LOCAL;
 const EMAIL = process.env.EMAIL_USER;
@@ -29,6 +29,10 @@ if(!SOKEY){
 if(!SOSECRET){
   console.log('SO_SECRET '+SOSECRET);
 }
+
+var Shopify = require('shopify-validate');
+var shopify = new Shopify(SHOPSECRET);
+var middleware = [shopify, bodyParser.json()];
 
 // https://github.com/louischatriot/nedb
 // Type 3: Persistent datastore with automatic loading
@@ -223,23 +227,25 @@ check_counts();
 // create a server that listens for URLs with order info.
 express()
   .use(express.static(path.join(__dirname, 'public')))
-  //.use(bodyParser.json())
-  .use(bodyParser.json({
-    verify: function(req, res, buf, encoding) {
-        if (req.url.search('shopify/webhook') >= 0) {
-            var calculated_signature = crypto.createHmac('sha256', SHOP_SECRET)
-                .update(buf)
-                .digest('base64');
-            if (calculated_signature != req.headers['x-shopify-hmac-sha256']) {
-                throw new Error('Invalid signature. Access denied');
-            }
-        }
-    }
-  }))
+  .use(bodyParser.json())
   .use(bodyParser.urlencoded({ extended: true }))
 
   // .set('views', path.join(__dirname, 'views'))
   // .set('view engine', 'ejs')
   .get('/', calc_sig)
-  .post('/',parseit)
+  .post('/', middleware, function(req, res) {
+    // validate the request is from shopify
+    if (!req.fromShopify()) {
+      return res.status(401).send()
+    }
+
+    // send success notification to shopify
+    // done before to prevent timeout
+    res.status(200).send()
+
+    var body = req.body
+    // process webhook
+    console.log('WEBHOOK OK');
+    parseit;
+  })
   .listen(PORT, () => console.log(`We're listening on ${ PORT }`));
