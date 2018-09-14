@@ -96,6 +96,7 @@ function parseit (req,res){
             gmailOptions.subject = 'Innovator'; // Subject line
             gmailOptions.text = 'Innovators get Bitwig and Arturia'; // plain text body
             gmailOptions.html = '<b>Innovators get Bitwig and Arturia</b>'; // html body
+            sendgmail();
           }
           if(variant=="Piano"){
             console.log('PIANO VARIANT');
@@ -103,6 +104,7 @@ function parseit (req,res){
             gmailOptions.subject = 'Piano'; // Subject line
             gmailOptions.text = 'Pianos get Bitwig and Arturia'; // plain text body
             gmailOptions.html = '<b>Pianos get Bitwig and Arturia</b>'; // html body
+            sendgmail();
           }
         }
       }
