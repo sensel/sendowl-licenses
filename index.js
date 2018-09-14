@@ -239,7 +239,7 @@ express()
      .digest('base64');
       }
     }))
-  .post('/webhook', function(req, res) {
+  .post('/shopify/webhook', function(req, res) {
     if (req.headers['x-generated-signature'] != req.headers['x-shopify-hmac-sha256']) {
       return res.status(401).send('Invalid Signature');
     }
