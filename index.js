@@ -64,11 +64,11 @@ function parseit (req,res){
       var order_num = req.body.name;
 
       for (i in req.body.client_details){
-        console.log('client_details: '+i+' - '+req.body.client_details[i];)  
+        console.log('client_details: '+i+' - '+req.body.client_details[i]) ;
       }
 
       for (i in req.body.customer){
-        console.log('customer: '+i+' - '+req.body.customer[i];)
+        console.log('customer: '+i+' - '+req.body.customer[i]);
       }
 
       for (i in req.body.line_items){
