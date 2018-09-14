@@ -238,13 +238,15 @@ express()
     // We'll compare the hmac to our own hash
     const hmac = req.get('X-Shopify-Hmac-Sha256');
     // Use raw-body to get the body (buffer)
-    const body = JSON.stringify(req.body);  
+    const body = JSON.stringify(req.body);
     // Create a hash using the body and our key
     const hash = crypto
       .createHmac('sha256', SHOPSECRET)
       .update(body, 'utf8', 'hex')
       .digest('base64')
     // Compare our hash to Shopify's hash
+    console.log('hmac '+hmac);
+    console.log('hash '+hash);
     if (hash === hmac) {
       // It's a match! All good
       console.log('Phew, it came from Shopify!');
