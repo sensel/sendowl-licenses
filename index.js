@@ -234,27 +234,37 @@ express()
   .get('/', calc_sig)
   //.post('/shopify/webhook',parseit)
   .post('/shopify/webhook', function (req, res) {
-    console.log('We got an order!');
-    // We'll compare the hmac to our own hash
-    const hmac = req.get('X-Shopify-Hmac-Sha256');
-    // Use raw-body to get the body (buffer)
-    const body = getRawBody(req, function(req,res){
-      // Create a hash using the body and our key
-      const hash = crypto
-        .createHmac('sha256', SHOPSECRET)
-        .update(body, 'utf8', 'hex')
-        .digest('base64')
-      // Compare our hash to Shopify's hash
-      if (hash === hmac) {
-        // It's a match! All good
-        console.log('Phew, it came from Shopify!');
-        res.sendStatus(200);
-        //parseit
-      } else {
-        // No match! This request didn't originate from Shopify
-        console.log('Danger! Not from Shopify!');
-        res.sendStatus(403);
-      }
-    });
+    console.log('We got an order!')
+
+    getRawBody(req)
+    .then(function (buf) {
+      res.statusCode = 200
+      res.end(buf.length + ' bytes submitted')
+    })
+    .catch(function (err) {
+      res.statusCode = 500
+      res.end(err.message)
+    })
+    //
+    // // We'll compare the hmac to our own hash
+    // const hmac = req.get('X-Shopify-Hmac-Sha256');
+    // // Use raw-body to get the body (buffer)
+    // const body = getRawBody(req);
+    // // Create a hash using the body and our key
+    // const hash = crypto
+    //   .createHmac('sha256', SHOPSECRET)
+    //   .update(body, 'utf8', 'hex')
+    //   .digest('base64')
+    // // Compare our hash to Shopify's hash
+    // if (hash === hmac) {
+    //   // It's a match! All good
+    //   console.log('Phew, it came from Shopify!');
+    //   res.sendStatus(200);
+    //   //parseit
+    // } else {
+    //   // No match! This request didn't originate from Shopify
+    //   console.log('Danger! Not from Shopify!');
+    //   res.sendStatus(403);
+    // }
   })
   .listen(PORT, () => console.log(`We're listening on ${ PORT }`));
