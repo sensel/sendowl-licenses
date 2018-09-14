@@ -44,7 +44,7 @@ db.counter = new Datastore({ filename: db_count_name, autoload: true });
 //   console.log('Artuira db count '+count);
 // });
 
-var parseit(req,res){
+var parseit = function (req,res){
   if (req.query.order_payment==1){
     console.log('webhook '+req)
   }else{
