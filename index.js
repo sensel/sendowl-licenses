@@ -61,7 +61,9 @@ function parseit (req,res){
         console.log('HEADER '+i+' : '+req.headers[i]);
       }
       for (i in req.body.line_items){
-        console.log('ITEMS '+i+' : '+req.body.line_items[i]);
+        for(j in req.body.line_items[i]){
+          console.log('ITEMS '+i+' - '+j+' : '+req.body.line_items[i][j]);
+        }
       }
 
 }
