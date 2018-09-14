@@ -238,11 +238,13 @@ express()
 
     getRawBody(req)
     .then(function (buf) {
-      res.statusCode = 200
-      res.end(buf.length + ' bytes submitted')
+      res.statusCode = 200;
+      console.log('get raw ok');
+      res.end(buf.length + ' bytes submitted');
     })
     .catch(function (err) {
-      res.statusCode = 500
+      res.statusCode = 403;
+      console.log('raw not ok');
       res.end(err.message)
     })
     //
