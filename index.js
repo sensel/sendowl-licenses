@@ -11,6 +11,7 @@ const PORT = process.env.PORT || 5000;
 //set in heroku https://devcenter.heroku.com/articles/config-vars using https://www.sendowl.com/settings/api_credentials
 var SOKEY = process.env.SO_KEY;
 var SOSECRET = process.env.SO_SECRET;
+var SHOPSECRET = process.env.SHOPIFY_SHARED_SECRET;
 //only set locally
 const ISLOCAL = process.env.LOCAL;
 const EMAIL = process.env.EMAIL_USER;
@@ -222,7 +223,19 @@ check_counts();
 // create a server that listens for URLs with order info.
 express()
   .use(express.static(path.join(__dirname, 'public')))
-  .use(bodyParser.json())
+  //.use(bodyParser.json())
+  .use(bodyParser.json({
+    verify: function(req, res, buf, encoding) {
+        if (req.url.search('shopify/webhook') >= 0) {
+            var calculated_signature = crypto.createHmac('sha256', SHOP_SECRET)
+                .update(buf)
+                .digest('base64');
+            if (calculated_signature != req.headers['x-shopify-hmac-sha256']) {
+                throw new Error('Invalid signature. Access denied');
+            }
+        }
+    }
+  }));
   .use(bodyParser.urlencoded({ extended: true }))
 
   // .set('views', path.join(__dirname, 'views'))
