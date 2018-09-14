@@ -238,12 +238,12 @@ express()
      .update(buf)
      .digest('base64');
       }
-    }));
+    }))
   .post('/webhook', function(req, res) {
     if (req.headers['x-generated-signature'] != req.headers['x-shopify-hmac-sha256']) {
       return res.status(401).send('Invalid Signature');
     }
-  });
+  })
   // .post('/shopify/webhook', function (req, res) {
   //   console.log('We got an order!')
   //   // We'll compare the hmac to our own hash
