@@ -63,8 +63,28 @@ function parseit (req,res){
       for (i in req.body.line_items){
         for(j in req.body.line_items[i]){
           console.log('ITEMS '+i+' - '+j+' : '+req.body.line_items[i][j]);
+          var title = req.body.line_items[i]['title'];
+          var qty = req.body.line_items[i]['quantity'];
+          var variant = req.body.line_items[i]['variant_title'];
+          if(title == 'The Sensel Morph with 1 Overlay'){
+            //provide arturia Codes
+            if(variant=='Music Production' || variant=='Piano' || variant=='Drum Pad' || variant=="Innovator's"){
+              //provide Bitwig code
+            }
+          }
+          if(title == "Morph Music Maker's Bundle"){
+            //provide Arturia Codes
+            //provide Bitwig Codes
+          }
+          if(title == 'SenselTest'){
+            console.log('SENSEL TEST PRODUCT')
+            if(variant=="Innovator's"){
+              console.log('INNOVATOR OVERLAY VARIANT')
+            }
+          }
         }
       }
+      for
 
 }
 
