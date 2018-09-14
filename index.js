@@ -227,35 +227,47 @@ check_counts();
 express()
   .use(express.static(path.join(__dirname, 'public')))
   .use(bodyParser.json())
-  .use(bodyParser.urlencoded({ extended: true }))
+  //.use(bodyParser.urlencoded({ extended: true }))
 
   // .set('views', path.join(__dirname, 'views'))
   // .set('view engine', 'ejs')
   .get('/', calc_sig)
   //.post('/shopify/webhook',parseit)
-  .post('/shopify/webhook', function (req, res) {
-    console.log('We got an order!')
-    // We'll compare the hmac to our own hash
-    const hmac = req.get('X-Shopify-Hmac-Sha256');
-    // Use raw-body to get the body (buffer)
-    const body = JSON.stringify(req.body);
-    // Create a hash using the body and our key
-    const hash = crypto
-      .createHmac('sha256', SHOPSECRET)
-      .update(body, 'utf8', 'hex')
-      .digest('base64')
-    // Compare our hash to Shopify's hash
-    console.log('hmac '+hmac);
-    console.log('hash '+hash);
-    if (hash === hmac) {
-      // It's a match! All good
-      console.log('Phew, it came from Shopify!');
-      res.sendStatus(200);
-      //parseit
-    } else {
-      // No match! This request didn't originate from Shopify
-      console.log('Danger! Not from Shopify!');
-      res.sendStatus(403);
+  .use(bodyParser.json({ verify: function(req, res, buf, encoding) {
+    req.headers['x-generated-signature'] = crypto.createHmac('sha256', 'SHARED_SECRET')
+     .update(buf)
+     .digest('base64');
+      }
+    }));
+  .post('/webhook', function(req, res) {
+    if (req.headers['x-generated-signature'] != req.headers['x-shopify-hmac-sha256']) {
+      return res.status(401).send('Invalid Signature');
     }
-  })
+  });
+  // .post('/shopify/webhook', function (req, res) {
+  //   console.log('We got an order!')
+  //   // We'll compare the hmac to our own hash
+  //   const hmac = req.get('X-Shopify-Hmac-Sha256');
+  //   // Use raw-body to get the body (buffer)
+  //   const body = JSON.stringify(req.body);
+  //   // Create a hash using the body and our key
+  //   const hash = crypto
+  //     .createHmac('sha256', SHOPSECRET)
+  //     .update(body, 'utf8', 'hex')
+  //     .digest('base64')
+  //   // Compare our hash to Shopify's hash
+  //   console.log('hmac '+hmac);
+  //   console.log('hash '+hash);
+  //   if (hash === hmac) {
+  //     // It's a match! All good
+  //     console.log('Phew, it came from Shopify!');
+  //     res.sendStatus(200);
+  //     //parseit
+  //   } else {
+  //     // No match! This request didn't originate from Shopify
+  //     console.log('Danger! Not from Shopify!');
+  //     res.sendStatus(403);
+  //   }
+  // })
+
   .listen(PORT, () => console.log(`We're listening on ${ PORT }`));
