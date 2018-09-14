@@ -235,7 +235,7 @@ express()
             }
         }
     }
-  }));
+  }))
   .use(bodyParser.urlencoded({ extended: true }))
 
   // .set('views', path.join(__dirname, 'views'))
