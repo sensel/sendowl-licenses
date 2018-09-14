@@ -233,7 +233,7 @@ express()
   // .set('views', path.join(__dirname, 'views'))
   // .set('view engine', 'ejs')
   .get('/', calc_sig)
-  .post('/', middleware, function(req, res) {
+  .post('/shopify/webhook', middleware, function(req, res) {
     // validate the request is from shopify
     if (!req.fromShopify()) {
       return res.status(401).send()
