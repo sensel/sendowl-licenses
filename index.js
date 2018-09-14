@@ -44,6 +44,14 @@ db.counter = new Datastore({ filename: db_count_name, autoload: true });
 //   console.log('Artuira db count '+count);
 // });
 
+var parseit(req,res){
+  if (req.query.order_payment==1){
+    console.log('webhook '+req)
+  }else{
+    calc_sig(req,res);
+  }
+}
+
 //parse values from URL and check if signature is valid from SendOwl.
 //if so process the order.
 var calc_sig = function (req,res){
@@ -210,5 +218,5 @@ express()
   // .set('views', path.join(__dirname, 'views'))
   // .set('view engine', 'ejs')
   // .get('/', (req, res) => res.render('pages/index'))
-  .get('/', calc_sig)
+  .get('/', parseit)
   .listen(PORT, () => console.log(`We're listening on ${ PORT }`));
