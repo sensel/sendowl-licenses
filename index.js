@@ -238,7 +238,7 @@ express()
     // We'll compare the hmac to our own hash
     const hmac = req.get('X-Shopify-Hmac-Sha256')
     // Use raw-body to get the body (buffer)
-    const body = await getRawBody(req)
+    const body = getRawBody(req)
     // Create a hash using the body and our key
     const hash = crypto
       .createHmac('sha256', SHOPSECRET)
