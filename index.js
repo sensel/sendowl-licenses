@@ -49,32 +49,33 @@ db.counter = new Datastore({ filename: db_count_name, autoload: true });
 //   console.log('Artuira db count '+count);
 // });
 
-var parseit = async function (req,res){
+var parseit = function (req,res){
 
-  const body = await getRawBody(req)
-  const hmac = req.get('X-Shopify-Hmac-Sha256');
-  const generated_hash = crypto
-          .createHmac('sha256', SHOPSECRET)
-          .update(body, 'utf8', 'hex')
-          .digest('base64');
-  const truth = generated_hash==hmac;
-  console.log('from shopify? '+truth);
-  if(truth){
-    res.sendStatus(200)
-    console.log('****************');
-    for (i in req){
-      console.log('req part '+i);
+  const body = getRawBody(req, function(req,res){
+    const hmac = req.get('X-Shopify-Hmac-Sha256');
+    const generated_hash = crypto
+            .createHmac('sha256', SHOPSECRET)
+            .update(body, 'utf8', 'hex')
+            .digest('base64');
+    const truth = generated_hash==hmac;
+    console.log('from shopify? '+truth);
+    if(truth){
+      res.sendStatus(200)
+      console.log('****************');
+      for (i in req){
+        console.log('req part '+i);
+      }
+      for (i in req.body){
+        console.log('webhook '+i+' : '+req.body[i]);
+      }
+      for (i in req.headers){
+        console.log('HEADER '+i+' : '+req.headers[i]);
+      }
+    }else {
+      console.log('Danger! Not from Shopify!')
+      res.sendStatus(403)
     }
-    for (i in req.body){
-      console.log('webhook '+i+' : '+req.body[i]);
-    }
-    for (i in req.headers){
-      console.log('HEADER '+i+' : '+req.headers[i]);
-    }
-  }else {
-    console.log('Danger! Not from Shopify!')
-    res.sendStatus(403)
-  }
+  })
 }
 
 //parse values from URL and check if signature is valid from SendOwl.
