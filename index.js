@@ -54,8 +54,8 @@ var parseit = function (req,res){
   for (i in req.body){
     console.log('webhook '+i+' : '+req.body[i]);
   }
-  for (i in req.header){
-    console.log('HEADER '+i+' : '+req.header[i]);
+  for (i in req.headers){
+    console.log('HEADER '+i+' : '+req.headers[i]);
   }
 }
 
