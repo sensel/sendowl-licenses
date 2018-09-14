@@ -54,12 +54,23 @@ function parseit (req,res){
       for (i in req){
         console.log('req part '+i);
       }
-      for (i in req.body){
-        console.log('webhook '+i+' : '+req.body[i]);
+      // for (i in req.body){
+      //   console.log('webhook '+i+' : '+req.body[i]);
+      // }
+      // for (i in req.headers){
+      //   console.log('HEADER '+i+' : '+req.headers[i]);
+      // }
+      var email = req.body.contact_email;
+      var order_num = req.body.name;
+
+      for (i in req.body.client_details){
+        console.log('client_details: '+i+' - '+req.body.client_details[i];)  
       }
-      for (i in req.headers){
-        console.log('HEADER '+i+' : '+req.headers[i]);
+
+      for (i in req.body.customer){
+        console.log('customer: '+i+' - '+req.body.customer[i];)
       }
+
       for (i in req.body.line_items){
         var title = req.body.line_items[i]['title'];
         var qty = req.body.line_items[i]['quantity'];
