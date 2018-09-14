@@ -52,7 +52,7 @@ db.counter = new Datastore({ filename: db_count_name, autoload: true });
 var parseit = function (req,res){
 
   var rawBody=getRawBody(req);
-  const hmac = request.get('X-Shopify-Hmac-Sha256');
+  const hmac = req.get('X-Shopify-Hmac-Sha256');
   const generated_hash = crypto
           .createHmac('sha256', SHOPSECRET)
           .update(rawBody)
