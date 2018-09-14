@@ -3,6 +3,9 @@ require('dotenv').config();
 var crypto = require('crypto');
 const nodemailer = require('nodemailer');
 const express = require('express');
+//handle POST from shopify webhook
+const bodyParser = require('body-parser');
+
 const path = require('path');
 const PORT = process.env.PORT || 5000;
 //set in heroku https://devcenter.heroku.com/articles/config-vars using https://www.sendowl.com/settings/api_credentials
@@ -45,11 +48,7 @@ db.counter = new Datastore({ filename: db_count_name, autoload: true });
 // });
 
 var parseit = function (req,res){
-  if (req.query.order_payment==1){
-    console.log('webhook '+req)
-  }else{
-    calc_sig(req,res);
-  }
+  console.log('webhook '+req)
 }
 
 //parse values from URL and check if signature is valid from SendOwl.
@@ -215,8 +214,11 @@ check_counts();
 // create a server that listens for URLs with order info.
 express()
   .use(express.static(path.join(__dirname, 'public')))
+  .use(bodyParser.json())
+  .use(bodyParser.urlencoded({ extended: true }))
+
   // .set('views', path.join(__dirname, 'views'))
   // .set('view engine', 'ejs')
-  // .get('/', (req, res) => res.render('pages/index'))
-  .get('/', parseit)
+  .get('/', calc_sig)
+  .post('/',parseit)
   .listen(PORT, () => console.log(`We're listening on ${ PORT }`));
