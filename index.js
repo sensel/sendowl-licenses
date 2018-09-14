@@ -51,17 +51,6 @@ db.counter = new Datastore({ filename: db_count_name, autoload: true });
 
 var parseit = function (req,res){
 
-  const body = getRawBody(req, function(req,res){
-    const hmac = req.get('X-Shopify-Hmac-Sha256');
-    const generated_hash = crypto
-            .createHmac('sha256', SHOPSECRET)
-            .update(body, 'utf8', 'hex')
-            .digest('base64');
-    const truth = generated_hash==hmac;
-    console.log('from shopify? '+truth);
-    if(truth){
-      res.sendStatus(200)
-      console.log('****************');
       for (i in req){
         console.log('req part '+i);
       }
@@ -71,11 +60,7 @@ var parseit = function (req,res){
       for (i in req.headers){
         console.log('HEADER '+i+' : '+req.headers[i]);
       }
-    }else {
-      console.log('Danger! Not from Shopify!')
-      res.sendStatus(403)
-    }
-  })
+
 }
 
 //parse values from URL and check if signature is valid from SendOwl.
@@ -247,5 +232,28 @@ express()
   // .set('views', path.join(__dirname, 'views'))
   // .set('view engine', 'ejs')
   .get('/', calc_sig)
-  .post('/shopify/webhook',parseit)
+  //.post('/shopify/webhook',parseit)
+  .post('/shopify/webhook', async (req, res) => {
+    console.log('We got an order!')
+    // We'll compare the hmac to our own hash
+    const hmac = req.get('X-Shopify-Hmac-Sha256')
+    // Use raw-body to get the body (buffer)
+    const body = await getRawBody(req)
+    // Create a hash using the body and our key
+    const hash = crypto
+      .createHmac('sha256', SHOPSECRET)
+      .update(body, 'utf8', 'hex')
+      .digest('base64')
+    // Compare our hash to Shopify's hash
+    if (hash === hmac) {
+      // It's a match! All good
+      console.log('Phew, it came from Shopify!');
+      res.sendStatus(200);
+      //parseit
+    } else {
+      // No match! This request didn't originate from Shopify
+      console.log('Danger! Not from Shopify!');
+      res.sendStatus(403);
+    }
+  })
   .listen(PORT, () => console.log(`We're listening on ${ PORT }`));
