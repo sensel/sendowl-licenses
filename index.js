@@ -5,6 +5,7 @@ const nodemailer = require('nodemailer');
 const express = require('express');
 //handle POST from shopify webhook
 const bodyParser = require('body-parser');
+var getRawBody = require('raw-body')
 
 const path = require('path');
 const PORT = process.env.PORT || 5000;
@@ -30,10 +31,6 @@ if(!SOSECRET){
   console.log('SO_SECRET '+SOSECRET);
 }
 
-var Shopify = require('shopify-validate');
-var shopify = new Shopify(SHOPSECRET);
-var middleware = [shopify, bodyParser.json()];
-
 // https://github.com/louischatriot/nedb
 // Type 3: Persistent datastore with automatic loading
 const db_bitwig_name='db/bwig_test';
@@ -53,6 +50,15 @@ db.counter = new Datastore({ filename: db_count_name, autoload: true });
 // });
 
 var parseit = function (req,res){
+
+  var rawBody=getRawBody(req);
+  const hmac = request.get('X-Shopify-Hmac-Sha256');
+  const generated_hash = crypto
+          .createHmac('sha256', SHOPSECRET)
+          .update(rawBody)
+          .digest('base64');
+  console.log('from shopify? '+(generated_hash==hmac));
+  console.log('****************');
   for (i in req){
     console.log('req part '+i);
   }
@@ -233,19 +239,5 @@ express()
   // .set('views', path.join(__dirname, 'views'))
   // .set('view engine', 'ejs')
   .get('/', calc_sig)
-  .post('/shopify/webhook', middleware, function(req, res) {
-    // validate the request is from shopify
-    if (!req.fromShopify()) {
-      return res.status(401).send()
-    }
-
-    // send success notification to shopify
-    // done before to prevent timeout
-    res.status(200).send()
-
-    var body = req.body
-    // process webhook
-    console.log('WEBHOOK OK');
-    parseit;
-  })
+  .post('/shopify/webhook',parseit)
   .listen(PORT, () => console.log(`We're listening on ${ PORT }`));
