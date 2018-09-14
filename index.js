@@ -49,7 +49,7 @@ db.counter = new Datastore({ filename: db_count_name, autoload: true });
 //   console.log('Artuira db count '+count);
 // });
 
-var parseit = function (req,res){
+var parseit = async function (req,res){
 
   const body = await getRawBody(req)
   const hmac = req.get('X-Shopify-Hmac-Sha256');
