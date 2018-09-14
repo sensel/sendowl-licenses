@@ -48,7 +48,9 @@ db.counter = new Datastore({ filename: db_count_name, autoload: true });
 // });
 
 var parseit = function (req,res){
-  console.log('webhook '+req.body)
+  for (i in req.body){
+    console.log('webhook '+i+' : '+req.body[i]);
+  }
 }
 
 //parse values from URL and check if signature is valid from SendOwl.
