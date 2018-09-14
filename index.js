@@ -48,6 +48,9 @@ db.counter = new Datastore({ filename: db_count_name, autoload: true });
 // });
 
 var parseit = function (req,res){
+  for (i in req){
+    console.log('req part '+i);
+  }
   for (i in req.body){
     console.log('webhook '+i+' : '+req.body[i]);
   }
