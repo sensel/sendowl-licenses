@@ -49,7 +49,7 @@ db.counter = new Datastore({ filename: db_count_name, autoload: true });
 //   console.log('Artuira db count '+count);
 // });
 
-var parseit = function (req,res){
+function parseit (req,res){
 
       for (i in req){
         console.log('req part '+i);
@@ -260,7 +260,7 @@ express()
     if (hash === hmac) {
       // It's a match! All good
       console.log('Phew, it came from Shopify!');
-      parseit;
+      parseit(req,res);
       res.sendStatus(200);
       //parseit
     } else {
