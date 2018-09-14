@@ -81,11 +81,12 @@ function parseit (req,res){
             if(variant=="Innovator's"){
               console.log('INNOVATOR OVERLAY VARIANT')
             }
+            if(variant=="Piano"){
+              console.log('PIANO VARIANT')
+            }
           }
         }
       }
-      for
-
 }
 
 //parse values from URL and check if signature is valid from SendOwl.
