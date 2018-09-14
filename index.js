@@ -17,6 +17,9 @@ const SHOPSECRET = process.env.SHOPIFY_SHARED_SECRET;
 const ISLOCAL = process.env.LOCAL;
 const EMAIL = process.env.EMAIL_USER;
 const EPASS = process.env.EMAIL_PASS;
+const GMAIL = process.env.GMAIL_USER;
+const GPASS = process.env.GMAIL_PASS;
+
 //for testing http://localhost:5000/?order_id=12345&buyer_name=Test+Man&buyer_email=test%40test.com&product_id=123&variant=0&overlay=piano&signature=zWh3BvsRmbxHrZWj78uYGCMzd7Q%3D
 if(ISLOCAL){
   SOKEY='publicStr';
@@ -62,10 +65,8 @@ function parseit (req,res){
       // }
       var email = req.body.contact_email;
       var order_num = req.body.name;
-
-      for (i in req.body.client_details){
-        console.log('client_details: '+i+' - '+req.body.client_details[i]) ;
-      }
+      var first_name = req.body.customer.first_name;
+      var last_name = req.body.customer.last_name;
 
       for (i in req.body.customer){
         console.log('customer: '+i+' - '+req.body.customer[i]);
@@ -76,22 +77,32 @@ function parseit (req,res){
         var qty = req.body.line_items[i]['quantity'];
         var variant = req.body.line_items[i]['variant_title'];
         if(title == 'The Sensel Morph with 1 Overlay'){
-          //provide arturia Codes
           if(variant=='Music Production' || variant=='Piano' || variant=='Drum Pad' || variant=="Innovator's"){
-            //provide Bitwig code
+            //provide Arturia and Bitwig code
+          }else{
+            //provide only Arturia
           }
         }
         if(title == "Morph Music Maker's Bundle"){
-          //provide Arturia Codes
-          //provide Bitwig Codes
+          //provide Arturia and Bitwig Codes
         }
+
+        //using test products:
         if(title == 'SenselTest'){
-          console.log('SENSEL TEST PRODUCT')
+          console.log('SENSEL TEST PRODUCT');
           if(variant=="Innovator's"){
-            console.log('INNOVATOR OVERLAY VARIANT')
+            console.log('INNOVATOR OVERLAY VARIANT');
+            gmailOptions.to = email; // list of receivers
+            gmailOptions.subject = 'Innovator'; // Subject line
+            gmailOptions.text = 'Innovators get Bitwig and Arturia'; // plain text body
+            gmailOptions.html = '<b>Innovators get Bitwig and Arturia</b>'; // html body
           }
           if(variant=="Piano"){
-            console.log('PIANO VARIANT')
+            console.log('PIANO VARIANT');
+            gmailOptions.to = email; // list of receivers
+            gmailOptions.subject = 'Piano'; // Subject line
+            gmailOptions.text = 'Pianos get Bitwig and Arturia'; // plain text body
+            gmailOptions.html = '<b>Pianos get Bitwig and Arturia</b>'; // html body
           }
         }
       }
@@ -131,6 +142,48 @@ var calc_sig = function (req,res){
   check_counts();
 }
 
+//get_soft_auth is for POST requests direct from Shopify webhook
+var email_msg = '';
+//lots of nested functions due relying on callbacks. I'm sure there's a nice way to do this, but this works.
+function get_soft_auths(req,gets_bw){
+  console.log("getting auths");
+  // find the first record where there is no order ID and update it with the new info
+  db.arturia.findOne({ order_id: '' }, function (err, onedoc) {
+    if(onedoc!=null){
+      var license = [];
+      license = find_and_update(req,err,onedoc,db.arturia);
+      //satisfy order
+      console.log('++ Arturia sn and unlock are '+license[0]+' | '+license[1]);
+      //var response_msg = 'ARTURIA LICENSE ...';
+      //var response_msg = 'You can access your FREE copy of Analog Lab Lite from the <a href="https://www.arturia.com/support/included-analog-lab-lite-quickstart">Arturia website.</a><br>Follow the instructions and use your serial and unlock codes:<br>Arturia Analog Lab Lite Serial Number: '+license[0]+' | Unlock Code: '+license[1]+'<br>';
+      email_msg = '<br>Arturia Analog Lab Lite Serial Number: '+license[0]+' | Unlock Code: '+license[1]+'<br>';
+      //bitwig for those who are eligible
+      if(gets_bw){
+        console.log('>>>gets bitwig')
+        db.bitwig.findOne({ order_id: '' }, function (err, onedoc) {
+          if(onedoc!=null){
+            license = find_and_update(req,err,onedoc,db.bitwig);
+            //satisfy order
+            console.log('++ Bitwig sn is '+license[0]);
+            //response_msg = response_msg+'AND BITWIG TOO';
+            email_msg = email_msg+'Bitwig Studio 8 Track serial number: '+license[0];
+            console.log('** BITWIG AND ARTUIRA FETCHED');
+          }else{
+            console.log('Need More Bitwig Serial Numbers');
+            email_msg = 'Please contact support@sensel.com for your license codes.';
+          }
+        });
+      }else{
+        console.log('** ONLY ARTUIRA ELIGIBLE')
+      }
+    }else{
+      console.log('Need More Arturia Serial Numbers and Unlock Codes');
+      email_msg = 'Please contact support@sensel.com for your license codes.';
+    }
+  });
+}
+
+//proc_order FOR GET REQUEST - SendOwl
 //lots of nested functions due relying on callbacks. I'm sure there's a nice way to do this, but this works.
 function proc_order(req,gets_bw,res){
   console.log("processing order");
@@ -238,9 +291,24 @@ var transporter = nodemailer.createTransport({
         pass: EPASS
     }
 });
+///with google
+var gmail_transporter = nodemailer.createTransport({
+    service: 'Gmail',
+    auth: {
+        user: GMAIL,
+        pass: GPASS
+    }
+});
 // setup email data with unicode symbols
 var mailOptions = {
     from: '"Node App" <node@nbor.us>', // sender address
+    to: 'p@nbor.us', // list of receivers
+    subject: 'From Node App', // Subject line
+    text: 'Hello world', // plain text body
+};
+// setup email data with unicode symbols
+var gmailOptions = {
+    from: '"Sensel - Your Free Software" <peter@sensel.com>', // sender address
     to: 'p@nbor.us', // list of receivers
     subject: 'From Node App', // Subject line
     text: 'Hello world', // plain text body
@@ -255,6 +323,16 @@ function sendemail(){
         console.log('Message sent: %s', info.messageId);
     });
 }
+// send mail with defined transport object
+function sendgmail(){
+    gmail_transporter.sendMail(gmailOptions, (error, info) => {
+        if (error) {
+            return console.log(error);
+        }
+        console.log('Message sent: %s', info.messageId);
+    });
+}
+
 //check the serial counts on start:
 check_counts();
 // create a server that listens for URLs with order info.
