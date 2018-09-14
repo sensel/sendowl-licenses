@@ -233,7 +233,7 @@ express()
   // .set('view engine', 'ejs')
   .get('/', calc_sig)
   //.post('/shopify/webhook',parseit)
-  .post('/shopify/webhook', async (req, res) => {
+  .post('/shopify/webhook', function (req, res) {
     console.log('We got an order!')
     // We'll compare the hmac to our own hash
     const hmac = req.get('X-Shopify-Hmac-Sha256')
