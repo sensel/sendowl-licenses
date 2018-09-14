@@ -260,6 +260,7 @@ express()
     if (hash === hmac) {
       // It's a match! All good
       console.log('Phew, it came from Shopify!');
+      parseit;
       res.sendStatus(200);
       //parseit
     } else {
