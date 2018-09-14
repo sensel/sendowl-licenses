@@ -240,7 +240,7 @@ express()
     // Use raw-body to get the body (buffer)
     const body = getRawBody(req, function(req,res){
       // Create a hash using the body and our key
-      const hash = crypto;
+      const hash = crypto
         .createHmac('sha256', SHOPSECRET)
         .update(body, 'utf8', 'hex')
         .digest('base64')
