@@ -8,7 +8,9 @@ We're excited to offer you a free copy of Arturia Analog Lab Lite. You’ll need
 
 <!--check if it is a variant that gets bitwig-->
 {%if product.shopify_variant_id contains ‘1245155917831’ or product.shopify_variant_id contains ‘1245155917832’ %}
-We're excited to offer you a free copy of Bitwig Studio 8-Track. You’ll need to visit the <a href=“https://www.bitwig.com/download”>Bitwig download page</a> to download. <a href="https://www.bitwig.com/en/account/register.html">Register</a> and activate with the Serial Number we provide below. Bitwig Studio 8-Track is an incredible DAW that lets you take full advantage of the Morph's pressure sensitive surface.
+Since you purchased a music overlay, you also get a copy Bitwig Studio 8-Track. You’ll need to visit the <a href=“https://www.bitwig.com/download”>Bitwig download page</a> to download. <a href="https://www.bitwig.com/en/account/register.html">Register</a> and activate with the Serial Number we provide below. Bitwig Studio 8-Track is an incredible DAW that lets you take full advantage of the Morph's pressure sensitive surface. And when you're ready to upgrade to the full version, you'll automatically get $40 off.
+
+Be sure to grab the support files <a href="https://sensel.com/collections/sound-packs/products/bitwig-control-surface-script">from our shop</a> for the fully integrated experience.
 {% endif %}
 
 {% if product_types contains 'digital' or product_types contains 'software' or product_types contains 'redirect' %}
@@ -18,10 +20,8 @@ We're excited to offer you a free copy of Bitwig Studio 8-Track. You’ll need t
 {% endfor %}{% endif %}
 {% endif %}
 </b>
-{% if product_types contains 'service' %}
-You have ordered service goods. The merchant will be in contact to arrange the carrying out of these services.
-{% endif %}
 
-Thanks,
 
-The SendOwl
+Have fun!
+
+Sensel
