@@ -110,7 +110,7 @@ function parseOrderInfo (req,res){
       //now that the order has been scanned, send an email will all software licenses
       //gmailOptions.to = email; // list of receivers
       for (i in auths){
-        console.log(i+' '+auths[i]);
+        console.log(i+' '+Object.values(auths[i]));
         for (j in auths[i]){
           console.log('AUTHORIZATIONS: '+i+' : '+j+' - '+auths[i][j]);
         }
