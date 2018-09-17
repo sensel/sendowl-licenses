@@ -83,6 +83,7 @@ function parseOrderInfo (req,res){
           if(variant=='Music Production' || variant=='Piano' || variant=='Drum Pad' || variant=="Innovator's"){
             //provide Arturia and Bitwig code
             auths[i] = new soft_auths(req,1);
+            co
           }else{
             //provide only Arturia
             auths[i] = new soft_auths(req);
@@ -98,10 +99,12 @@ function parseOrderInfo (req,res){
           if(variant=="Innovator's"){
             console.log('INNOVATOR OVERLAY VARIANT');
             auths[i] = new soft_auths(req);
+            console.log(i+' inno '+Object.values(auths[i]));
           }
           if(variant=="Piano"){
             console.log('PIANO VARIANT');
             auths[i] = new soft_auths(req,1);
+            console.log(i+' piano '+Object.values(auths[i]));
           }
         }
 
@@ -142,7 +145,7 @@ function soft_auths(req,gets_bw){
             update_db(req,onedoc._id,db.bitwig);
             //satisfy order
             console.log('++ Bitwig sn is '+cart.bitwig);
-            console.log('** BITWIG AND ARTUIRA FETCHED');
+            //console.log('** BITWIG AND ARTUIRA FETCHED');
           }else{
             console.log('Need More Bitwig Serial Numbers');
             cart[1] = 'contact support@sensel.com for your Bitwig license';
