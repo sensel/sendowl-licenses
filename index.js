@@ -45,24 +45,23 @@ db.bitwig = new Datastore({ filename: db_bitwig_name, autoload: true });
 db.arturia = new Datastore({ filename: db_arturia_name, autoload: true });
 db.counter = new Datastore({ filename: db_count_name, autoload: true });
 
-// db.bitwig.count({}, function (err, count) {
-//   console.log('Bitwig db count '+count);
-// });
-// db.arturia.count({}, function (err, count) {
-//   console.log('Artuira db count '+count);
-// });
+function showWebhook(req){
+  for (i in req.body){
+    console.log('webhook '+i+' : '+req.body[i]);
+  }
+  for (i in req.headers){
+    console.log('HEADER '+i+' : '+req.headers[i]);
+  }
+}
 
-function parseit (req,res){
-
+//get the order info from Shopify and grab all the interesting bits.
+function parseOrderInfo (req,res){
       for (i in req){
         console.log('req part '+i);
       }
-      // for (i in req.body){
-      //   console.log('webhook '+i+' : '+req.body[i]);
-      // }
-      // for (i in req.headers){
-      //   console.log('HEADER '+i+' : '+req.headers[i]);
-      // }
+
+      //showWebhook(req);
+
       var email = req.body.contact_email;
       var order_num = req.body.name;
       var first_name = req.body.customer.first_name;
@@ -71,7 +70,7 @@ function parseit (req,res){
       for (i in req.body.customer){
         console.log('customer: '+i+' - '+req.body.customer[i]);
       }
-
+      var auths = []; //fills up with software authorizations as we scann thru the order for eligible products.
       for (i in req.body.line_items){
         var title = req.body.line_items[i]['title'];
         var qty = req.body.line_items[i]['quantity'];
@@ -79,100 +78,66 @@ function parseit (req,res){
         if(title == 'The Sensel Morph with 1 Overlay'){
           if(variant=='Music Production' || variant=='Piano' || variant=='Drum Pad' || variant=="Innovator's"){
             //provide Arturia and Bitwig code
+            auths[i] = new soft_auths(req,1);
           }else{
             //provide only Arturia
+            auths[i] = new soft_auths(req);
           }
         }
         if(title == "Morph Music Maker's Bundle"){
           //provide Arturia and Bitwig Codes
+          auths[i] = new soft_auths(req,1);
         }
-
         //using test products:
         if(title == 'SenselTest'){
           console.log('SENSEL TEST PRODUCT');
           if(variant=="Innovator's"){
             console.log('INNOVATOR OVERLAY VARIANT');
-            gmailOptions.to = email; // list of receivers
-            gmailOptions.subject = 'Innovator'; // Subject line
-            gmailOptions.text = 'Innovators get Bitwig and Arturia'; // plain text body
-            gmailOptions.html = '<b>Innovators get Bitwig and Arturia</b>'; // html body
-            sendgmail();
+            auths[i] = new soft_auths(req);
           }
           if(variant=="Piano"){
             console.log('PIANO VARIANT');
-            gmailOptions.to = email; // list of receivers
-            gmailOptions.subject = 'Piano'; // Subject line
-            gmailOptions.text = 'Pianos get Bitwig and Arturia'; // plain text body
-            gmailOptions.html = '<b>Pianos get Bitwig and Arturia</b>'; // html body
-            sendgmail();
+            auths[i] = new soft_auths(req,1);
           }
         }
+
       }
+      //now that the order has been scanned, send an email will all software licenses
+      gmailOptions.to = email; // list of receivers
+      for (i in auths){
+        console.log('AUTHORIZATIONS: '+auths[i]);
+      }
+
 }
 
-//parse values from URL and check if signature is valid from SendOwl.
-//if so process the order.
-var calc_sig = function (req,res){
-  //https://polar-sands-88575.herokuapp.com/?buyer_email={{ order.buyer_email }}&buyer_name={{ order.buyer_name }}&order_id={{ order.id }}&product_id={{ product.id }}&variant={{ product.shopify_variant_id }}&overlay=xxx
-  //overlay: none, innovators, videoediting, musicproduction, piano, drumpad, gaming, qwerty, azerty, dvorak, thunder
 
-  console.log('----Calculating Signature---');
-  var buyer_email = req.query.buyer_email;
-  var buyer_name = req.query.buyer_name;
-  var order_id = req.query.order_id;
-  var overlay = req.query.overlay
-  var product_id = req.query.product_id;
-  var variant_id = req.query.variant;
-  //var product_name = req.query.product_name;
-  var signature = req.query.signature;
-  var params_ordered = 'buyer_email='+buyer_email+'&buyer_name='+buyer_name+'&order_id='+order_id+'&overlay='+overlay+'&product_id='+product_id+'&variant='+variant_id; //+'&product_name='+product_name;
-  var crypto_text = params_ordered+'&secret='+SOSECRET;
-  var crypto_key = SOKEY+'&'+SOSECRET;
-  var crypto_hash = crypto.createHmac('sha1', crypto_key).update(crypto_text).digest('base64');
-  console.log('calculated signature: '+crypto_hash)
-  for(i in req.query){
-    console.log(i+': '+req.query[i]+'\r');
-  }
-  //eligible for a Bitwig Studio 8 Track license?
-  var gets_bw = (overlay=='innovators' || overlay=='musicproduction' || overlay=='piano' || overlay=='drumpad' || overlay=='thunder'|| overlay=='switzerland')
-  //coming from SendOwl? true or false!
-  if(crypto_hash==signature){
-    proc_order(req,gets_bw,res);
-  }else{
-    order_invalid(res);
-  }
-  check_counts();
-}
-
-//get_soft_auth is for POST requests direct from Shopify webhook
-var email_msg = '';
+//soft_auths is for POST requests direct from Shopify webhook
 //lots of nested functions due relying on callbacks. I'm sure there's a nice way to do this, but this works.
-function get_soft_auths(req,gets_bw){
+function soft_auths(req,gets_bw){
   console.log("getting auths");
-  // find the first record where there is no order ID and update it with the new info
+  // find the first record where there is no order ID ('onedoc'), get the license info,
+  // then update entry with the new info
+  //returns an array of license info. Entry 0 is Arturia, entry 1 is Bitwig.
   db.arturia.findOne({ order_id: '' }, function (err, onedoc) {
+    var cart = {};
+
     if(onedoc!=null){
-      var license = [];
-      license = find_and_update(req,err,onedoc,db.arturia);
-      //satisfy order
-      console.log('++ Arturia sn and unlock are '+license[0]+' | '+license[1]);
-      //var response_msg = 'ARTURIA LICENSE ...';
-      //var response_msg = 'You can access your FREE copy of Analog Lab Lite from the <a href="https://www.arturia.com/support/included-analog-lab-lite-quickstart">Arturia website.</a><br>Follow the instructions and use your serial and unlock codes:<br>Arturia Analog Lab Lite Serial Number: '+license[0]+' | Unlock Code: '+license[1]+'<br>';
-      email_msg = '<br>Arturia Analog Lab Lite Serial Number: '+license[0]+' | Unlock Code: '+license[1]+'<br>';
+      cart['arturia'] = [onedoc.serial,onedoc.unlock_code];
+      update_db(req,onedoc._id,db.arturia);
+      console.log('++ Arturia sn and unlock are '+cart.arturia[0]+' | '+cart.arturia[1]);
       //bitwig for those who are eligible
       if(gets_bw){
         console.log('>>>gets bitwig')
         db.bitwig.findOne({ order_id: '' }, function (err, onedoc) {
           if(onedoc!=null){
-            license = find_and_update(req,err,onedoc,db.bitwig);
+            cart['bitwig'] = [onedoc.serial];
+            update_db(req,onedoc._id,db.bitwig);
             //satisfy order
-            console.log('++ Bitwig sn is '+license[0]);
-            //response_msg = response_msg+'AND BITWIG TOO';
-            email_msg = email_msg+'Bitwig Studio 8 Track serial number: '+license[0];
+            console.log('++ Bitwig sn is '+cart.bitwig);
             console.log('** BITWIG AND ARTUIRA FETCHED');
           }else{
             console.log('Need More Bitwig Serial Numbers');
-            email_msg = 'Please contact support@sensel.com for your license codes.';
+            cart[1] = 'contact support@sensel.com for your Bitwig license';
           }
         });
       }else{
@@ -180,83 +145,31 @@ function get_soft_auths(req,gets_bw){
       }
     }else{
       console.log('Need More Arturia Serial Numbers and Unlock Codes');
-      email_msg = 'Please contact support@sensel.com for your license codes.';
+      cart[0] = 'contact support@sensel.com for your Arturia license';
     }
+    return cart
   });
 }
 
-//proc_order FOR GET REQUEST - SendOwl
-//lots of nested functions due relying on callbacks. I'm sure there's a nice way to do this, but this works.
-function proc_order(req,gets_bw,res){
-  console.log("processing order");
-  db.arturia.count({ order_id: '' })
-  // find the first record where there is no order ID and update it with the new info
-  db.arturia.findOne({ order_id: '' }, function (err, onedoc) {
-    if(onedoc!=null){
-      var license = [];
-      license = find_and_update(req,err,onedoc,db.arturia);
-      //satisfy order
-      console.log('++ Arturia sn and unlock are '+license[0]+' | '+license[1]);
-      //var response_msg = 'ARTURIA LICENSE ...';
-      //var response_msg = 'You can access your FREE copy of Analog Lab Lite from the <a href="https://www.arturia.com/support/included-analog-lab-lite-quickstart">Arturia website.</a><br>Follow the instructions and use your serial and unlock codes:<br>Arturia Analog Lab Lite Serial Number: '+license[0]+' | Unlock Code: '+license[1]+'<br>';
-      var response_msg = '<br>Arturia Analog Lab Lite Serial Number: '+license[0]+' | Unlock Code: '+license[1]+'<br>';
-      //bitwig for those who are eligible
-      if(gets_bw){
-        console.log('>>>gets bitwig')
-        db.bitwig.findOne({ order_id: '' }, function (err, onedoc) {
-          if(onedoc!=null){
-            license = find_and_update(req,err,onedoc,db.bitwig);
-            //satisfy order
-            console.log('++ Bitwig sn is '+license[0]);
-            //response_msg = response_msg+'AND BITWIG TOO';
-            response_msg = response_msg+'Bitwig Studio 8 Track serial number: '+license[0];
-            res.send(response_msg);
-            console.log('** BITWIG AND ARTUIRA SENT');
-          }else{
-            console.log('Need More Bitwig Serial Numbers');
-            //better to have no response and let SendOwl send us a warning.
-            //res.send('Please contact support@sensel.com for your license.');
-          }
-        });
-      }else{
-        res.send(response_msg);
-        console.log('** ONLY ARTUIRA SENT')
-      }
-    }else{
-      console.log('Need More Arturia Serial Numbers and Unlock Codes');
-      //better to have no response and let SendOwl send us a warning.
-      //res.send('Please contact support@sensel.com for your license.');
-    }
-  });
-}
-
-function find_and_update (req,err,onedoc,db_select){
-  console.log(onedoc);
-  console.log(".................");
-  var temp=onedoc._id;
-  var lic = [onedoc.serial,onedoc.unlock_code];
+function update_db (req,rec_id,db_select){
   //abbreviate!
-  var email = req.query.buyer_email;
-  var name = req.query.buyer_name;
-  var o_id = req.query.order_id;
-  var p_id = req.query.product_id;
+  var email = req.body.contact_email;
+  var o_id = req.body.name; //weird they call it name, it's an order number.
+  var first_name = req.body.customer.first_name;
+  var last_name = req.body.customer.last_name;
+  var name = first_name+' '+last_name;
 
   var dbs = db_select;
   //update database
-  dbs.update({ _id: temp }, { $set: { order_id: o_id } }, { multi: false }, function (err, numReplaced) {
+  dbs.update({ _id: rec_id }, { $set: { order_id: o_id } }, { multi: false }, function (err, numReplaced) {
     console.log('order_id added');
   });
-  dbs.update({ _id: temp }, { $set: { product_id: p_id } }, { multi: false }, function (err, numReplaced) {
-    console.log('product_id added');
-  });
-  dbs.update({ _id: temp }, { $set: { customer_email: email } }, { multi: false }, function (err, numReplaced) {
+  dbs.update({ _id: rec_id }, { $set: { customer_email: email } }, { multi: false }, function (err, numReplaced) {
     console.log('customer_email added');
   });
-  dbs.update({ _id: temp }, { $set: { customer_name: name } }, { multi: false }, function (err, numReplaced) {
+  dbs.update({ _id: rec_id }, { $set: { customer_name: name } }, { multi: false }, function (err, numReplaced) {
     console.log('customer_name added');
   });
-
-  return lic;
 }
 
 function check_counts(){
@@ -278,21 +191,7 @@ function check_counts(){
   });
 }
 
-function order_invalid(res){
-  console.log("ORDER INVALID")
-  res.send('This order was determined to be invalid.');
-}
-
 ///SETUP Email service
-var transporter = nodemailer.createTransport({
-    host: 'sub5.mail.dreamhost.com',
-    port: 465,
-    secure: true,
-    auth: {
-        user: EMAIL,
-        pass: EPASS
-    }
-});
 ///with google
 var gmail_transporter = nodemailer.createTransport({
     service: 'Gmail',
@@ -301,14 +200,8 @@ var gmail_transporter = nodemailer.createTransport({
         pass: GPASS
     }
 });
-// setup email data with unicode symbols
-var mailOptions = {
-    from: '"Node App" <node@nbor.us>', // sender address
-    to: 'p@nbor.us', // list of receivers
-    subject: 'From Node App', // Subject line
-    text: 'Hello world', // plain text body
-};
-// setup email data with unicode symbols
+
+// setup email data
 var gmailOptions = {
     from: '"Sensel - Your Free Software" <peter@sensel.com>', // sender address
     to: 'p@nbor.us', // list of receivers
@@ -316,24 +209,28 @@ var gmailOptions = {
     text: 'Hello world', // plain text body
 };
 
-// send mail with defined transport object
-function sendemail(){
-    transporter.sendMail(mailOptions, (error, info) => {
-        if (error) {
-            return console.log(error);
-        }
-        console.log('Message sent: %s', info.messageId);
-    });
+function sendTemplate(tempFile,art_sn,art_uc,bw_sn){
+  var template = __dirname+'/emails/swcodes/'+tempFile; //art-all.ejs or art-all_bw-s8t.ejs
+  var templateData = { bitwig_sn: bw_sn, arturia_sn: art_sn,arturia_uc: art_uc};
+  console.log('Begin....');
+  ejs.renderFile(template, templateData , function (err, data) {
+    console.log('******')
+    if (err) {
+        console.log(err);
+    } else {
+        gmailOptions.html = data;
+        console.log("======================>");
+        gmail_transporter.sendMail(gmailOptions, function (err, info) {
+            if (err) {
+                console.log(err);
+            } else {
+                console.log('Message sent: ' + info.response);
+            }
+        });
+    }
+  });
 }
-// send mail with defined transport object
-function sendgmail(){
-    gmail_transporter.sendMail(gmailOptions, (error, info) => {
-        if (error) {
-            return console.log(error);
-        }
-        console.log('Message sent: %s', info.messageId);
-    });
-}
+
 
 //check the serial counts on start:
 check_counts();
@@ -352,11 +249,6 @@ express()
   )
   .use(bodyParser.urlencoded({ extended: true }))
 
-  // .set('views', path.join(__dirname, 'views'))
-  // .set('view engine', 'ejs')
-  .get('/', calc_sig)
-  //.post('/shopify/webhook',parseit)
-
   .post('/shopify/webhook', function (req, res) {
     console.log('We got an order!')
     // We'll compare the hmac to our own hash
@@ -369,18 +261,17 @@ express()
       .update(req.rawbody, 'utf8', 'hex')
       .digest('base64')
     // Compare our hash to Shopify's hash
-    console.log('hmac '+hmac);
-    console.log('hash '+hash);
     if (hash === hmac) {
       // It's a match! All good
       console.log('Phew, it came from Shopify!');
-      parseit(req,res);
+//Order came from Shopify, so we'll parse the info and email the customer relevant software licenses.
+      parseOrderInfo(req,res);
       res.sendStatus(200);
-      //parseit
     } else {
       // No match! This request didn't originate from Shopify
       console.log('Danger! Not from Shopify!');
       res.sendStatus(403);
     }
   })
+
   .listen(PORT, () => console.log(`We're listening on ${ PORT }`));
