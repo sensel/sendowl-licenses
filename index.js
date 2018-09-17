@@ -46,19 +46,22 @@ db.arturia = new Datastore({ filename: db_arturia_name, autoload: true });
 db.counter = new Datastore({ filename: db_count_name, autoload: true });
 
 function showWebhook(req){
+  for (i in req){
+    console.log('req part '+i);
+  }
   for (i in req.body){
     console.log('webhook '+i+' : '+req.body[i]);
   }
   for (i in req.headers){
     console.log('HEADER '+i+' : '+req.headers[i]);
   }
+  for (i in req.body.customer){
+    console.log('customer: '+i+' - '+req.body.customer[i]);
+  }
 }
 
 //get the order info from Shopify and grab all the interesting bits.
 function parseOrderInfo (req,res){
-      for (i in req){
-        console.log('req part '+i);
-      }
 
       //showWebhook(req);
 
@@ -67,9 +70,7 @@ function parseOrderInfo (req,res){
       var first_name = req.body.customer.first_name;
       var last_name = req.body.customer.last_name;
 
-      for (i in req.body.customer){
-        console.log('customer: '+i+' - '+req.body.customer[i]);
-      }
+
       var auths = []; //fills up with software authorizations as we scann thru the order for eligible products.
       for (i in req.body.line_items){
         var title = req.body.line_items[i]['title'];
