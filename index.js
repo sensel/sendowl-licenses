@@ -76,6 +76,9 @@ function parseOrderInfo (req,res){
         var title = req.body.line_items[i]['title'];
         var qty = req.body.line_items[i]['quantity'];
         var variant = req.body.line_items[i]['variant_title'];
+
+        console.log('Cart Item '+i+': '+title+' w/ '+variant);
+
         if(title == 'The Sensel Morph with 1 Overlay'){
           if(variant=='Music Production' || variant=='Piano' || variant=='Drum Pad' || variant=="Innovator's"){
             //provide Arturia and Bitwig code
@@ -107,7 +110,7 @@ function parseOrderInfo (req,res){
       //now that the order has been scanned, send an email will all software licenses
       //gmailOptions.to = email; // list of receivers
       for (i in auths){
-        console.log(i);
+        console.log(i+' '+auths[i]);
         for (j in auths[i]){
           console.log('AUTHORIZATIONS: '+i+' : '+j+' - '+auths[i][j]);
         }
