@@ -45,6 +45,9 @@ db.bitwig = new Datastore({ filename: db_bitwig_name, autoload: true });
 db.arturia = new Datastore({ filename: db_arturia_name, autoload: true });
 db.counter = new Datastore({ filename: db_count_name, autoload: true });
 
+//when order is scanned, we store counts of auths to send out
+var auth = {'bitwig_8ts':0, 'arturia_all':0};
+
 function showWebhook(req){
   for (i in req){
     console.log('req part '+i);
@@ -69,62 +72,61 @@ function parseOrderInfo (req,res){
       var order_num = req.body.name;
       var first_name = req.body.customer.first_name;
       var last_name = req.body.customer.last_name;
-
-
+      //clear counter
+      auth = {'bitwig_8ts':0, 'arturia_all':0};
       var auths = []; //fills up with software authorizations as we scann thru the order for eligible products.
+
+      //scan thru order and count the number of auths we'll need.
+      //then, after scanning pass thru a function that gets all the auths
       for (i in req.body.line_items){
         var title = req.body.line_items[i]['title'];
         var qty = req.body.line_items[i]['quantity'];
         var variant = req.body.line_items[i]['variant_title'];
 
-        console.log('Cart Item '+i+': '+title+' w/ '+variant);
+        console.log('++   Cart Item '+i+': '+title+' w/ '+variant);
 
         if(title == 'The Sensel Morph with 1 Overlay'){
           if(variant=='Music Production' || variant=='Piano' || variant=='Drum Pad' || variant=="Innovator's"){
             //provide Arturia and Bitwig code
-            auths[i] = new soft_auths(req,1);
-            co
+            auth.bitwig_8ts = auth.bitwig_8ts ++;
+            auth.arturia_all = auth.arturia_all ++;
           }else{
             //provide only Arturia
             auths[i] = new soft_auths(req);
+            auth.arturia_all = auth.arturia_all ++;
           }
         }
         if(title == "Morph Music Maker's Bundle"){
           //provide Arturia and Bitwig Codes
-          auths[i] = new soft_auths(req,1);
+          auth.bitwig_8ts = auth.bitwig_8ts ++;
+          auth.arturia_all = auth.arturia_all ++;
         }
         //using test products:
         if(title == 'SenselTest'){
           console.log('SENSEL TEST PRODUCT');
           if(variant=="Innovator's"){
             console.log('INNOVATOR OVERLAY VARIANT');
-            auths[i] = new soft_auths(req);
-            console.log(i+' inno '+Object.values(auths[i]));
+            auth.arturia_all = auth.arturia_all ++;
           }
           if(variant=="Piano"){
             console.log('PIANO VARIANT');
-            auths[i] = new soft_auths(req,1);
-            console.log(i+' piano '+Object.values(auths[i]));
+            auth.bitwig_8ts = auth.bitwig_8ts ++;
+            auth.arturia_all = auth.arturia_all ++;
           }
         }
-
       }
       console.log('-----done scanning order------');
       //now that the order has been scanned, send an email will all software licenses
       //gmailOptions.to = email; // list of receivers
-      for (i in auths){
-        console.log(i+' '+Object.values(auths[i]));
-        for (j in auths[i]){
-          console.log('AUTHORIZATIONS: '+i+' : '+j+' - '+auths[i][j]);
-        }
-      }
+
 
 }
 
 
 //soft_auths is for POST requests direct from Shopify webhook
 //lots of nested functions due relying on callbacks. I'm sure there's a nice way to do this, but this works.
-function soft_auths(req,gets_bw){
+function soft_auths(req){
+
   console.log("getting auths");
   // find the first record where there is no order ID ('onedoc'), get the license info,
   // then update entry with the new info
