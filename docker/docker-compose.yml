@@ -1,0 +1,18 @@
+# Use root/example as user/password credentials
+version: '2'
+
+services:
+  node:
+    image: node:10
+    working_dir: /usr/src/app
+    volumes:
+      - ../:/usr/src/app
+    depends_on:
+      - mongo
+
+  mongo:
+    image: mongo
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: mongo-password

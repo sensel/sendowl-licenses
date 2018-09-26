@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-docker build -t sensel-software-licenses .
+docker-compose build
