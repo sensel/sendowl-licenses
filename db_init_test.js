@@ -1,5 +1,5 @@
-// https://github.com/louischatriot/nedb
-// Type 3: Persistent datastore with automatic loading
+
+require('dotenv').config();
 const db_art='db/art_test'
 const source_art='arturia_test.txt'
 const db_bwig='db/bwig_test'
@@ -9,7 +9,8 @@ const fs = require('fs');
 const MongoClient = require('mongodb').MongoClient;
 (async function() {
   // Connection URL
-  const url = 'mongodb://root:mongo-password@mongo:27017';
+  // const url = 'mongodb://root:mongo-password@mongo:27017';
+  const url = process.env['DEV_MONGO_URI'];
   // Database Name
   const dbName = 'sensel-software-licenses';
   let client;
@@ -26,7 +27,7 @@ const MongoClient = require('mongodb').MongoClient;
   if (client) {
     console.log('client opened')
 
-    // await testInsert(db)
+    await testInsert(db)
     await testRead(db);
 
     client.close();
@@ -77,8 +78,7 @@ async function testInsert(db) {
 async function testRead(db) {
   const licenses = db.collection('licenses')
   let recs = await licenses.find().toArray();
-  console.log('read records: ')
-  console.log(recs)
+  console.log('read records count: '+recs.length);
 }
 
 ///create test db for Bitwig
