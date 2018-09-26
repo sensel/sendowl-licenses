@@ -6,13 +6,18 @@ services:
     image: node:10
     working_dir: /usr/src/app
     volumes:
-      - ../:/usr/src/app
+      - "../:/usr/src/app"
     depends_on:
       - mongo
 
   mongo:
     image: mongo
     restart: always
+    volumes:
+      - "mongo_data:/data/db"
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: mongo-password
+
+volumes:
+  mongo_data:
