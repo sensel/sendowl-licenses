@@ -6,7 +6,7 @@ const path = require('path');
 const MongoClient = require('mongodb').MongoClient;
 
 // Connection URL
-const url = process.env['DEV_MONGO_URI'];
+const url = process.env['MONGO_URI'];
 // Database Name
 const dbName = 'sensel-software-licenses';
 
