@@ -52,38 +52,15 @@ async function testInsertArturia(db) {
     counter++;
   }
 
-  // await bitwig.insert({"serial":snum,"customer_name":"","customer_email":"","order_id":"","product_id":"","variant_id":""});
   console.log('Arturia completed with '+counter+' records');
-
 }
 
-async function testInsertBitwig(db) {}
+async function testInsertBitwig(db) {
+  // await bitwig.insert({"serial":snum,"customer_name":"","customer_email":"","order_id":"","product_id":"","variant_id":""});
+}
 
 async function testRead(db, collName) {
   const licenses = db.collection(collName)
   let recs = await licenses.find().toArray();
   console.log(`num read ${collName}: ${recs.length}`);
 }
-
-///create test db for Bitwig
-// dbfile = db_bwig;
-// source = source_bwig;
-
-// var db_bw = new Datastore({ filename: dbfile, autoload: true });
-// var counter = 0;
-
-// require('fs').readFileSync(source).toString().split('\n').forEach(function (line) {
-//   var snum = line.split(',')[0];
-//   var unlock = line.split(',')[1];
-//   console.log('snum: '+snum);
-//   db_bw.insert({"serial":snum,"customer_name":"","customer_email":"","order_id":"","product_id":"","variant_id":""});
-//   counter++;
-// })
-// console.log('Bitwig completed with '+counter+' records');
-
-// db_bw.count({ order_id: '' }, function (err, count) {
-//   console.log('remaining bitwig:'+count);
-// });
-// db_ar.count({ order_id: '' }, function (err, count) {
-//   console.log('remaining arturia:'+count);
-// });
