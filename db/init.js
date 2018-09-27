@@ -27,9 +27,7 @@ let db;
     console.log('client opened')
 
     await testInsertArturia(db);
-    await testRead(db, 'arturia-licenses');
     await testInsertBitwig(db);
-    await testRead(db, 'bitwig-licenses');
 
     client.close();
   }
@@ -42,25 +40,43 @@ let db;
 async function testInsertArturia(db) {
   const testPath = path.resolve(__dirname, source_art);
   const lines = fs.readFileSync(testPath, 'UTF-8').toString().split('\n');
-  const coll = db.collection('arturia-licenses');
+  const collName = 'arturia-licenses';
+  const coll = db.collection(collName);
 
   let counter = 0;
   for (let line of lines) {
     var snum = line.split(',')[0];
     var unlock = line.split(',')[1];
-    await coll.insertOne({"serial":snum,"unlock_code":unlock,"customer_name":"","customer_email":"","order_id":"","product_id":"","variant_id":""});
+    await coll.insertOne({
+      "serial":snum,
+      "unlock_code":unlock,
+      "customer_name":"",
+      "customer_email":"",
+      "order_id":"",
+      "product_id":"",
+      "variant_id":""
+    });
     counter++;
   }
 
   console.log('Arturia completed with '+counter+' records');
+
+  await testRead(db, collName);
 }
 
 async function testInsertBitwig(db) {
-  // await bitwig.insert({"serial":snum,"customer_name":"","customer_email":"","order_id":"","product_id":"","variant_id":""});
+  await bitwig.insertOne({
+    "serial":snum,
+    "customer_name":"",
+    "customer_email":"",
+    "order_id":"",
+    "product_id":"",
+    "variant_id":""
+  });
 }
 
 async function testRead(db, collName) {
   const licenses = db.collection(collName)
   let recs = await licenses.find().toArray();
-  console.log(`num read ${collName}: ${recs.length}`);
+  console.log(`Created ${collName}: ${recs.length}`);
 }

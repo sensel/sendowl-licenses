@@ -1,11 +1,9 @@
-
 require('dotenv').config();
 var crypto = require('crypto');
 const nodemailer = require('nodemailer');
 const express = require('express');
 //handle POST from shopify webhook
 const bodyParser = require('body-parser');
-var getRawBody = require('raw-body')
 
 const path = require('path');
 const PORT = process.env.PORT || 5000;
@@ -38,12 +36,10 @@ if(!SOSECRET){
 // Type 3: Persistent datastore with automatic loading
 const db_bitwig_name='db/bwig_test';
 const db_arturia_name='db/art_test';
-const db_count_name='db/count_test';
 var Datastore = require('nedb');
 var db = {};
-db.bitwig = new Datastore({ filename: db_bitwig_name, autoload: true });
-db.arturia = new Datastore({ filename: db_arturia_name, autoload: true });
-db.counter = new Datastore({ filename: db_count_name, autoload: true });
+db.bitwig = new Datastore({ filename: db_bitwig_name, autoload: false });
+db.arturia = new Datastore({ filename: db_arturia_name, autoload: false });
 
 //when order is scanned, we store counts of auths to send out
 var auth = {'bitwig_8ts':0, 'arturia_all':0};
@@ -244,14 +240,13 @@ function sendTemplate(tempFile,art_sn,art_uc,bw_sn){
   });
 }
 
-
 //check the serial counts on start:
 check_counts();
 // create a server that listens for URLs with order info.
 express()
   .use(express.static(path.join(__dirname, 'public')))
   .use(bodyParser.json({
-      type:'*/*',
+      type:'application/json',
       limit: '50mb',
       verify: function(req, res, buf) {
           if (req.url.startsWith('/shopify')){

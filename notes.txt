@@ -1,2 +1,0 @@
-- figure out what's up with package locking/shinkwrap + heroku + mac + docker
-- get some integration tests for mongodb
