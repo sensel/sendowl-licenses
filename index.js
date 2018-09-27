@@ -1,5 +1,7 @@
+'use strict';
+
 require('dotenv').config();
-var crypto = require('crypto');
+const crypto = require('crypto');
 const nodemailer = require('nodemailer');
 const express = require('express');
 //handle POST from shopify webhook
@@ -8,8 +10,8 @@ const bodyParser = require('body-parser');
 const path = require('path');
 const PORT = process.env.PORT || 5000;
 //set in heroku https://devcenter.heroku.com/articles/config-vars using https://www.sendowl.com/settings/api_credentials
-var SOKEY = process.env.SO_KEY;
-var SOSECRET = process.env.SO_SECRET;
+let SOKEY = process.env.SO_KEY;
+let SOSECRET = process.env.SO_SECRET;
 const SHOPSECRET = process.env.SHOPIFY_SHARED_SECRET;
 //only set locally
 const ISLOCAL = process.env.LOCAL;
@@ -36,25 +38,25 @@ if(!SOSECRET){
 // Type 3: Persistent datastore with automatic loading
 const db_bitwig_name='db/bwig_test';
 const db_arturia_name='db/art_test';
-var Datastore = require('nedb');
-var db = {};
+const Datastore = require('nedb');
+const db = {};
 db.bitwig = new Datastore({ filename: db_bitwig_name, autoload: false });
 db.arturia = new Datastore({ filename: db_arturia_name, autoload: false });
 
 //when order is scanned, we store counts of auths to send out
-var auth = {'bitwig_8ts':0, 'arturia_all':0};
+let auth = {'bitwig_8ts':0, 'arturia_all':0};
 
 function showWebhook(req){
-  for (i in req){
+  for (let i in req){
     console.log('req part '+i);
   }
-  for (i in req.body){
+  for (let i in req.body){
     console.log('webhook '+i+' : '+req.body[i]);
   }
-  for (i in req.headers){
+  for (let i in req.headers){
     console.log('HEADER '+i+' : '+req.headers[i]);
   }
-  for (i in req.body.customer){
+  for (let i in req.body.customer){
     console.log('customer: '+i+' - '+req.body.customer[i]);
   }
 }
@@ -64,20 +66,20 @@ function parseOrderInfo (req,res){
 
       //showWebhook(req);
 
-      var email = req.body.contact_email;
-      var order_num = req.body.name;
-      var first_name = req.body.customer.first_name;
-      var last_name = req.body.customer.last_name;
+      const email = req.body.contact_email;
+      const order_num = req.body.name;
+      const first_name = req.body.customer.first_name;
+      const last_name = req.body.customer.last_name;
       //clear counter
       auth = {'bitwig_8ts':0, 'arturia_all':0};
-      var auths = []; //fills up with software authorizations as we scann thru the order for eligible products.
+      const auths = []; //fills up with software authorizations as we scann thru the order for eligible products.
 
       //scan thru order and count the number of auths we'll need.
       //then, after scanning pass thru a function that gets all the auths
-      for (i in req.body.line_items){
-        var title = req.body.line_items[i]['title'];
-        var qty = req.body.line_items[i]['quantity'];
-        var variant = req.body.line_items[i]['variant_title'];
+      for (let i in req.body.line_items){
+        const title = req.body.line_items[i]['title'];
+        const qty = req.body.line_items[i]['quantity'];
+        const variant = req.body.line_items[i]['variant_title'];
 
         console.log('++   Cart Item '+i+': '+title+' w/ '+variant);
 
@@ -128,7 +130,7 @@ function soft_auths(req){
   // then update entry with the new info
   //returns an array of license info. Entry 0 is Arturia, entry 1 is Bitwig.
   db.arturia.findOne({ order_id: '' }, function (err, onedoc) {
-    var cart = {};
+    const cart = {};
 
     if(onedoc!=null){
       cart['arturia'] = [onedoc.serial,onedoc.unlock_code];
@@ -162,13 +164,13 @@ function soft_auths(req){
 
 function update_db (req,rec_id,db_select){
   //abbreviate!
-  var email = req.body.contact_email;
-  var o_id = req.body.name; //weird they call it name, it's an order number.
-  var first_name = req.body.customer.first_name;
-  var last_name = req.body.customer.last_name;
-  var name = first_name+' '+last_name;
+  const email = req.body.contact_email;
+  const o_id = req.body.name; //weird they call it name, it's an order number.
+  const first_name = req.body.customer.first_name;
+  const last_name = req.body.customer.last_name;
+  const name = first_name+' '+last_name;
 
-  var dbs = db_select;
+  const dbs = db_select;
   //update database
   dbs.update({ _id: rec_id }, { $set: { order_id: o_id } }, { multi: false }, function (err, numReplaced) {
     console.log('order_id added');
@@ -202,7 +204,7 @@ function check_counts(){
 
 ///SETUP Email service
 ///with google
-var gmail_transporter = nodemailer.createTransport({
+const gmail_transporter = nodemailer.createTransport({
     service: 'Gmail',
     auth: {
         user: GMAIL,
@@ -211,7 +213,7 @@ var gmail_transporter = nodemailer.createTransport({
 });
 
 // setup email data
-var gmailOptions = {
+const gmailOptions = {
     from: '"Sensel - Your Free Software" <peter@sensel.com>', // sender address
     to: 'p@nbor.us', // list of receivers
     subject: 'From Node App', // Subject line
@@ -219,8 +221,8 @@ var gmailOptions = {
 };
 
 function sendTemplate(tempFile,art_sn,art_uc,bw_sn){
-  var template = __dirname+'/emails/swcodes/'+tempFile; //art-all.ejs or art-all_bw-s8t.ejs
-  var templateData = { bitwig_sn: bw_sn, arturia_sn: art_sn,arturia_uc: art_uc};
+  const template = __dirname+'/emails/swcodes/'+tempFile; //art-all.ejs or art-all_bw-s8t.ejs
+  const templateData = { bitwig_sn: bw_sn, arturia_sn: art_sn,arturia_uc: art_uc};
   console.log('Begin....');
   ejs.renderFile(template, templateData , function (err, data) {
     console.log('******')
@@ -256,6 +258,10 @@ express()
    })
   )
   .use(bodyParser.urlencoded({ extended: true }))
+
+  .get('/', function(req, res) {
+    res.send('SENSEL').status(200);
+  })
 
   .post('/shopify/webhook', function (req, res) {
     console.log('We got an order!')
