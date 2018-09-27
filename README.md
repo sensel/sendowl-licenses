@@ -56,7 +56,4 @@ node ./db/init.js
 
 # drop dev database
 node ./db/drop.js
-
-# init dev database
-node ./db/init.js
 ```
