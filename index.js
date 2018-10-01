@@ -148,6 +148,9 @@ async function soft_auths(req,auth){
   console.log(`found: ${lic_docs.length} auths in the Arturia Database.`);
   for(let i in lic_docs){
     console.log(`docs: ${i} - ${lic_docs[i]}`);
+    for(let j in lic_docs[i]){
+      console.log(`j docs: ${j} - ${lic_docs[j]}`);
+    }
   }
 
   let art_cart = [[],[]];
