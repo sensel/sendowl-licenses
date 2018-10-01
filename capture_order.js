@@ -65,7 +65,7 @@ function process_get(req, res) {
   // Create a hash using the body and our key
   const hash = crypto
     .createHmac('sha256', SHOPSECRET)
-    .update(body, 'utf8', 'hex')
+    .update(req.body, 'utf8', 'hex')
     .digest('base64');
 
   // Compare our hash to Shopify's hash
