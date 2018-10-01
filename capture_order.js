@@ -54,9 +54,9 @@ function sendEmail(data){
 function process_get(req, res) {
   console.log('We got an order!...');
   for(let i in req){
-    console.log(i);
-    console.log(req[i]);
+    console.log(`i: ${i}`);
   }
+  console.log(`--rawbody: ${req.rawbody}`)
   // We'll compare the hmac to our own hash
   const hmac = req.get('X-Shopify-Hmac-Sha256');
   console.log(`hmac: ${hmac}`);
@@ -65,7 +65,7 @@ function process_get(req, res) {
   // Create a hash using the body and our key
   const hash = crypto
     .createHmac('sha256', SHOPSECRET)
-    .update(req.body, 'utf8', 'hex')
+    .update(req.rawbody, 'utf8', 'hex')
     .digest('base64');
 
   // Compare our hash to Shopify's hash
