@@ -22,6 +22,8 @@ const bodyParser = require('body-parser');
 const path = require('path');
 const MongoClient = require('mongodb').MongoClient;
 let ejs = require('ejs');
+let getRawBody = require('raw-body')
+let fs = require('fs');
 
 let SERVER_PORT = process.env.PORT || 5000;
 //set in heroku https://devcenter.heroku.com/articles/config-vars using https://www.sendowl.com/settings/api_credentials
@@ -36,6 +38,14 @@ const GPASS = process.env.GMAIL_PASS;
 const dbName = 'sensel-software-licenses'
 let dbBitwig;
 let dbArturia;
+
+//read a json file that is the same format as a post from Shopify webhook
+// let testOrder = JSON.parse(fs.readFileSync('testorder.json', 'utf8'));
+let testOrder;
+fs.readFile('testorder.json', 'utf8', function (err, data) {
+  if (err) throw err;
+  testOrder = JSON.parse(data);
+});
 
 // run given doFunc inside a database transaction
 async function dbDo(doFunc) {
@@ -115,7 +125,8 @@ async function parseOrderInfo (req,res){
   //now go through db and get the auth keys as needed
   let auth_cart = await soft_auths(req,auths_needed);
   //email the contents of cart to customer
-  sendTemplate(auth_cart);
+  await sendTemplate(auth_cart);
+
 }
 
 async function noauths_avail(v){
@@ -262,6 +273,53 @@ const gmailOptions = {
     text: 'Hello world', // plain text body
 };
 
+async function process_post(req, res) {
+  console.log('We got an order!...');
+  for(let i in req){
+    console.log(`i: ${i}`);
+  }
+  console.log(`--rawbody: ${req.rawbody}`)
+  // We'll compare the hmac to our own hash
+  const hmac = req.get('X-Shopify-Hmac-Sha256');
+  console.log(`hmac: ${hmac}`);
+  // Use raw-body to get the body (buffer)
+  const body = JSON.stringify(req.body);
+  // Create a hash using the body and our key
+  const hash = crypto
+    .createHmac('sha256', SHOPSECRET)
+    .update(req.rawbody, 'utf8', 'hex')
+    .digest('base64');
+
+  // Compare our hash to Shopify's hash
+  if (hash === hmac) {
+    // It's a match! All good
+    console.log('Phew, it came from Shopify!');
+
+    await dbDo(async (db) => {
+      dbBitwig = db.collection('bitwig-licenses');
+      dbArturia = db.collection('arturia-licenses');
+
+      //Order came from Shopify, so we'll parse the info and email the customer relevant software licenses.
+      await parseOrderInfo(req,res);
+    });
+
+    res.sendStatus(200);
+  } else {
+    // No match! This request didn't originate from Shopify
+    console.log('Danger! Not from Shopify!');
+    res.sendStatus(403);
+  }
+
+});
+
+    res.sendStatus(200);
+  } else {
+    // No match! This request didn't originate from Shopify
+    console.log('Danger! Not from Shopify!');
+    res.sendStatus(403);
+  }
+}
+
 async function main() {
   await dbDo(async (db) => {
     dbBitwig = db.collection('bitwig-licenses');
@@ -289,38 +347,11 @@ async function main() {
     .get('/', function(req, res) {
       res.send('SENSEL').status(200);
     })
-
+    .post('/', async function(req, res) {
+      process_post(req,res);
+    })
     .post('/shopify/webhook', async function(req, res) {
-      console.log('We got an order!')
-      // We'll compare the hmac to our own hash
-      const hmac = req.get('X-Shopify-Hmac-Sha256');
-      // Use raw-body to get the body (buffer)
-      //const body = JSON.stringify(req.body);
-      // Create a hash using the body and our key
-      const hash = crypto
-        .createHmac('sha256', SHOPSECRET)
-        .update(req.rawbody, 'utf8', 'hex')
-        .digest('base64');
-
-      // Compare our hash to Shopify's hash
-      if (hash === hmac) {
-        // It's a match! All good
-        console.log('Phew, it came from Shopify!');
-
-        await dbDo(async (db) => {
-          dbBitwig = db.collection('bitwig-licenses');
-          dbArturia = db.collection('arturia-licenses');
-
-          //Order came from Shopify, so we'll parse the info and email the customer relevant software licenses.
-          await parseOrderInfo(req,res);
-        });
-
-        res.sendStatus(200);
-      } else {
-        // No match! This request didn't originate from Shopify
-        console.log('Danger! Not from Shopify!');
-        res.sendStatus(403);
-      }
+      process_post(req,res);
     })
 
     .listen(SERVER_PORT, () => console.log(`We're listening on ${ SERVER_PORT }`));
