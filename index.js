@@ -35,7 +35,7 @@ const ISLOCAL = process.env.LOCAL;
 const GMAIL = process.env.GMAIL_USER;
 const GPASS = process.env.GMAIL_PASS;
 
-const dbName = 'sensel-software-licenses'
+const dbName = 'heroku_z503k0d1';
 let dbBitwig;
 let dbArturia;
 
