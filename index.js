@@ -143,7 +143,7 @@ async function soft_auths(req,auth){
   // find the first record where there is no order ID ('lic_docs'), get the license info,
   // then update entry with the new info
   //returns an array of license info. Entry 0 is Arturia, entry 1 is Bitwig.
-  let lic_docs = await dbArturia.find({ order_id: '' }).limit(auth.arturia_all);
+  let lic_docs = await dbArturia.find({ order_id: '' }).limit(3);
   for (let doc = await lic_docs.next(); doc != null; doc = await lic_docs.next()) {
       console.log(`SERIALS: ${doc.serial}`);
     }
