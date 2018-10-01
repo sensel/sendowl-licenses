@@ -310,14 +310,6 @@ async function process_post(req, res) {
     res.sendStatus(403);
   }
 
-});
-
-    res.sendStatus(200);
-  } else {
-    // No match! This request didn't originate from Shopify
-    console.log('Danger! Not from Shopify!');
-    res.sendStatus(403);
-  }
 }
 
 async function main() {
