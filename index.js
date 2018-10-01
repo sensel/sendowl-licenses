@@ -136,7 +136,7 @@ async function noauths_avail(v){
 //soft_auths is for POST requests direct from Shopify webhook
 //lots of nested functions due relying on callbacks. I'm sure there's a nice way to do this, but this works.
 async function soft_auths(req,auth){
-  console.log("getting authorizations");
+  console.log(`>> getting authorizations for Arturia: ${auth.arturia_all} and Bitwig: ${auth.bitwig_8ts} <<`);
   // auth.bitwig_8ts is number of bitwig licenses we need to deliver
   // auth.arturia_all is number of arturia licenses we need to deliver
   let cart = {'arturia_all':[],'bitwig_8ts':[]};
@@ -144,6 +144,8 @@ async function soft_auths(req,auth){
   // then update entry with the new info
   //returns an array of license info. Entry 0 is Arturia, entry 1 is Bitwig.
   let lic_docs = await dbArturia.find({ order_id: '' }).limit(auth.arturia_all);
+  console.log(`found: ${lic_docs.length} auths in the Arturia Database.`);
+  console.log(lic_docs);
 
   let art_cart = [[],[]];
 
@@ -161,6 +163,9 @@ async function soft_auths(req,auth){
 
   //find the bitwig auths
   lic_docs = await dbBitwig.find({ order_id: '' }).limit(auth.bitwig_8ts);
+  console.log(`found: ${lic_docs.length} auths in the Bitwig Database.`);
+  console.log(lic_docs);
+
   let bw_cart = [];
 
   if(lic_docs.length===auth.bitwig_8ts){
