@@ -1,3 +1,14 @@
+//TO DO:
+//soft_auths needs to be changed to handle multiple licenses as needed from parseOrder results
+//need to incorporate the actual email system
+//figure out major failures - check for failures and email me if it happens
+//collect the order data from Shopify for testing
+//need to initialize the database in herokuapp
+//  put heroku in maintenace mode
+//  then run the init db using the heroku command line tool (heroku run, exec, or task)
+//    --heroku run 'node db/init.js' -a polar-sands-88575
+//  then switch from maintenance to live.
+
 'use strict';
 
 require('dotenv').config();
@@ -8,8 +19,9 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const path = require('path');
 const MongoClient = require('mongodb').MongoClient;
+let ejs = require('ejs');
 
-const PORT = process.env.PORT || 5000;
+let SERVER_PORT = process.env.PORT || 5000;
 //set in heroku https://devcenter.heroku.com/articles/config-vars using https://www.sendowl.com/settings/api_credentials
 let SOKEY = process.env.SO_KEY;
 let SOSECRET = process.env.SO_SECRET;
@@ -18,20 +30,6 @@ const SHOPSECRET = process.env.SHOPIFY_SHARED_SECRET;
 const ISLOCAL = process.env.LOCAL;
 const GMAIL = process.env.GMAIL_USER;
 const GPASS = process.env.GMAIL_PASS;
-
-//for testing http://localhost:5000/?order_id=12345&buyer_name=Test+Man&buyer_email=test%40test.com&product_id=123&variant=0&overlay=piano&signature=zWh3BvsRmbxHrZWj78uYGCMzd7Q%3D
-if(ISLOCAL){
-  SOKEY='publicStr';
-  SOSECRET='t0ps3cr3t';
-}
-
-//is there a problem?
-if(!SOKEY){
-  console.log('SO_KEY '+SOKEY);
-}
-if(!SOSECRET){
-  console.log('SO_SECRET '+SOSECRET);
-}
 
 const dbName = 'sensel-software-licenses'
 let dbBitwig;
@@ -65,18 +63,14 @@ async function dbDo(doFunc) {
   }
 }
 
-//when order is scanned, we store counts of auths to send out
-let auth = {'bitwig_8ts':0, 'arturia_all':0};
-
 //get the order info from Shopify and grab all the interesting bits.
 async function parseOrderInfo (req,res){
   const email = req.body.contact_email;
   const order_num = req.body.name;
   const first_name = req.body.customer.first_name;
   const last_name = req.body.customer.last_name;
-  //clear counter
-  auth = {'bitwig_8ts':0, 'arturia_all':0};
-  const auths = []; //fills up with software authorizations as we scann thru the order for eligible products.
+  //when order is scanned, we store counts of auths to send out
+  let auths_needed = {'bitwig_8ts':0, 'arturia_all':0};
 
   //scan thru order and count the number of auths we'll need.
   //then, after scanning pass thru a function that gets all the auths
@@ -89,73 +83,86 @@ async function parseOrderInfo (req,res){
     if(title == 'The Sensel Morph with 1 Overlay'){
       if(variant=='Music Production' || variant=='Piano' || variant=='Drum Pad' || variant=="Innovator's"){
         //provide Arturia and Bitwig code
-        auth.bitwig_8ts = auth.bitwig_8ts ++;
-        auth.arturia_all = auth.arturia_all ++;
+        auths_needed.bitwig_8ts = auths_needed.bitwig_8ts + 1;
+        auths_needed.arturia_all = auths_needed.arturia_all + 1;
       }else{
         //provide only Arturia
-        auths[i] = await soft_auths(req);
-        auth.arturia_all = auth.arturia_all ++;
+        auths_needed.arturia_all = auths_needed.arturia_all + 1;
       }
     }
     if(title == "Morph Music Maker's Bundle"){
       //provide Arturia and Bitwig Codes
-      auth.bitwig_8ts = auth.bitwig_8ts ++;
-      auth.arturia_all = auth.arturia_all ++;
+      auths_needed.bitwig_8ts = auths_needed.bitwig_8ts + 1;
+      auths_needed.arturia_all = auths_needed.arturia_all + 1;
     }
     //using test products:
     if(title == 'SenselTest'){
       console.log('SENSEL TEST PRODUCT');
       if(variant=="Innovator's"){
         console.log('INNOVATOR OVERLAY VARIANT');
-        auth.arturia_all = auth.arturia_all ++;
+        auths_needed.arturia_all = auths_needed.arturia_all ++;
       }
       if(variant=="Piano"){
         console.log('PIANO VARIANT');
-        auth.bitwig_8ts = auth.bitwig_8ts ++;
-        auth.arturia_all = auth.arturia_all ++;
+        auths_needed.bitwig_8ts = auths_needed.bitwig_8ts ++;
+        auths_needed.arturia_all = auths_needed.arturia_all ++;
       }
     }
   }
-  console.log('-----done scanning order------');
+  console.log(`-----done scanning order. need ${auths_needed.arturia_all} Arturia licenses and ${auths_needed.bitwig_8ts} Bitwig licenses----`);
+  //now go through db and get the auth keys as needed
+  let auth_cart = await soft_auths(req,auths_needed);
+  //email the contents of cart to customer
+  sendTemplate(auth_cart);
 }
 
+async function noauths_avail(v){
+  //email peter@sensel.com and mark@sensel.com
+}
 
 //soft_auths is for POST requests direct from Shopify webhook
 //lots of nested functions due relying on callbacks. I'm sure there's a nice way to do this, but this works.
-async function soft_auths(req){
-  console.log("getting auths");
-  // find the first record where there is no order ID ('onedoc'), get the license info,
+async function soft_auths(req,auth){
+  console.log("getting authorizations");
+  // auth.bitwig_8ts is number of bitwig licenses we need to deliver
+  // auth.arturia_all is number of arturia licenses we need to deliver
+  let cart = {'arturia_all':[],'bitwig_8ts':[]};
+  // find the first record where there is no order ID ('lic_docs'), get the license info,
   // then update entry with the new info
   //returns an array of license info. Entry 0 is Arturia, entry 1 is Bitwig.
-  const onedoc = await dbArturia.find({ order_id: '' }).limit(1);
-  const cart = {};
+  let lic_docs = await dbArturia.find({ order_id: '' }).limit(auth.arturia_all);
 
-  if(onedoc!=null){
-    cart['arturia'] = [onedoc.serial,onedoc.unlock_code];
-    await update_db(req,onedoc._id,dbArturia);
-    console.log('++ Arturia sn and unlock are '+cart.arturia[0]+' | '+cart.arturia[1]);
-    //bitwig for those who are eligible
-    if(gets_bw){
-      console.log('>>>gets bitwig')
-      const onedoc = await dbBitwig.find({ order_id: '' }).limit(1);
-      if(onedoc!=null){
-        cart['bitwig'] = [onedoc.serial];
-        await update_db(req,onedoc._id,dbBitwig);
-        //satisfy order
-        console.log('++ Bitwig sn is '+cart.bitwig);
-        //console.log('** BITWIG AND ARTUIRA FETCHED');
-      }else{
-        console.log('Need More Bitwig Serial Numbers');
-        cart[1] = 'contact support@sensel.com for your Bitwig license';
-      }
-    }else{
-      console.log('** ONLY ARTUIRA ELIGIBLE')
+  let art_cart = [[],[]];
+
+  if(lic_docs.length===auth.arturia_all){
+    let j = 0;
+    for(let i of lic_docs){
+      art_cart[j] = [lic_docs[i].serial,lic_docs[i].unlock_code];
+      await update_db(req,lic_docs[i]._id,dbArturia);
+      console.log(`++ Arturia sn and unlock are ${art_cart[j][0]} | ${art_cart[j][1]}`);
     }
   }else{
     console.log('Need More Arturia Serial Numbers and Unlock Codes');
-    cart[0] = 'contact support@sensel.com for your Arturia license';
+    art_cart[0] = 'contact support@sensel.com for your Arturia license';
   }
 
+  //find the bitwig auths
+  lic_docs = await dbBitwig.find({ order_id: '' }).limit(auth.bitwig_8ts);
+  let bw_cart = [];
+
+  if(lic_docs.length===auth.bitwig_8ts){
+    let j = 0;
+    for(let i in lic_docs){
+      bw_cart[j] = [lic_docs[i].serial,lic_docs[i].unlock_code];
+      await update_db(req,lic_docs[i]._id,dbBitwig);
+      console.log(`++ Bitwig sn is ${bw_cart[j][0]}`);
+    }
+  }else{
+    console.log('Need More Bitwig Serial Numbers');
+    bw_cart[1] = 'contact support@sensel.com for your Arturia license';
+  }
+  cart.arturia_all = art_cart;
+  cart.bitwig_8ts = bw_cart;
   return cart;
 }
 
@@ -168,12 +175,49 @@ async function update_db (req,rec_id,db_select){
   const name = first_name+' '+last_name;
 
   //update database
-  await db_select.updateOne({ _id: rec_id }, { $set: { order_id: o_id } });
+  await db_select.updateOne({ _id: rec_id }, { $set: { order_id: o_id, customer_email: email, customer_name: name } });
   console.log('order_id added');
-  await db_select.updateOne({ _id: rec_id }, { $set: { customer_email: email } });
   console.log('customer_email added');
-  await db_select.updateOne({ _id: rec_id }, { $set: { customer_name: name } });
   console.log('customer_name added');
+}
+
+async function sendTemplate(cart){
+  // cart.arturia_all;
+  // cart.bitwig_8ts;
+  let art_sn, art_uc, bw_sn, tempFile;
+  // create strings of the auth codes from the cart
+  for(let i in cart.arturia_all){
+    art_sn += cart.arturia_all[i][0]+' \n';
+    art_uc += cart.arturia_all[i][1]+' \n';
+  }
+  for(let i in cart.bitwig_8ts){
+    bw_sn += cart.bitwig_8ts[i][0]+' \n';
+  }
+  //figure out what email template to use
+  if(cart.bitwig_8ts.length>0){
+    tempFile = art-all_bw-s8t.ejs;
+  }else{
+    tempFile = art-all.ejs;
+  }
+  const template = __dirname+'/emails/swcodes/'+tempFile; //art-all.ejs or art-all_bw-s8t.ejs
+  const templateData = { bitwig_sn: bw_sn, arturia_sn: art_sn,arturia_uc: art_uc};
+  console.log('Begin....');
+  ejs.renderFile(template, templateData , function (err, data) {
+    console.log('******')
+    if (err) {
+        console.log(err);
+    } else {
+        gmailOptions.html = data;
+        console.log("======================>");
+        gmail_transporter.sendMail(gmailOptions, function (err, info) {
+            if (err) {
+                console.log(err);
+            } else {
+                console.log('Message sent: ' + info.response);
+            }
+        });
+    }
+  });
 }
 
 async function sendemail() {
@@ -215,28 +259,6 @@ const gmailOptions = {
     subject: 'From Node App', // Subject line
     text: 'Hello world', // plain text body
 };
-
-function sendTemplate(tempFile,art_sn,art_uc,bw_sn){
-  const template = __dirname+'/emails/swcodes/'+tempFile; //art-all.ejs or art-all_bw-s8t.ejs
-  const templateData = { bitwig_sn: bw_sn, arturia_sn: art_sn,arturia_uc: art_uc};
-  console.log('Begin....');
-  ejs.renderFile(template, templateData , function (err, data) {
-    console.log('******')
-    if (err) {
-        console.log(err);
-    } else {
-        gmailOptions.html = data;
-        console.log("======================>");
-        gmail_transporter.sendMail(gmailOptions, function (err, info) {
-            if (err) {
-                console.log(err);
-            } else {
-                console.log('Message sent: ' + info.response);
-            }
-        });
-    }
-  });
-}
 
 async function main() {
   await dbDo(async (db) => {
@@ -299,6 +321,6 @@ async function main() {
       }
     })
 
-    .listen(PORT, () => console.log(`We're listening on ${ PORT }`));
+    .listen(SERVER_PORT, () => console.log(`We're listening on ${ SERVER_PORT }`));
 }
 main();
