@@ -9,6 +9,8 @@
 //    --heroku run 'node db/init.js' -a polar-sands-88575
 //  then switch from maintenance to live.
 
+// app is at https://polar-sands-88575.herokuapp.com/ https://git.heroku.com/polar-sands-88575.git
+
 'use strict';
 
 require('dotenv').config();
