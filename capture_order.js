@@ -93,7 +93,7 @@ function main() {
         type:'application/json',
         limit: '50mb',
         verify: function(req, res, buf) {
-            if (req.url.startsWith('/shopify')){
+            if (req.url.startsWith('/')){
               req.rawbody = buf;
             }
         }
