@@ -40,7 +40,7 @@ const gmailOptions = {
     text: 'Hello world', // plain text body
 };
 
-function sendEmail(data){
+function async sendEmail(data){
   gmailOptions.text = data;
   console.log("======================>");
   gmail_transporter.sendMail(gmailOptions, function (err, info) {
@@ -52,7 +52,7 @@ function sendEmail(data){
   });
 }
 
-function process_get(req, res) {
+function async process_get(req, res) {
   console.log('We got an order!...');
   for(let i in req){
     console.log(`i: ${i}`);
@@ -112,10 +112,10 @@ function main() {
       res.send('SENSEL').status(200);
     })
 
-    .post('/shopify/webhook', function(req, res){
+    .post('/shopify/webhook', async function(req, res){
       process_get(req,res)
     })
-    .post('/', function(req, res){
+    .post('/', async function(req, res){
       process_get(req,res)
     })
 
