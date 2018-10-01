@@ -39,7 +39,7 @@ const gmailOptions = {
     text: 'Hello world', // plain text body
 };
 
-async function sendEmail(data){
+function sendEmail(data){
   gmailOptions.text = data;
   console.log("======================>");
   gmail_transporter.sendMail(gmailOptions, function (err, info) {
@@ -52,7 +52,7 @@ async function sendEmail(data){
 }
 
 
-async function main() {
+function main() {
   // create a server that listens for URLs with order info.
   express()
     .use(express.static(path.join(__dirname, 'public')))
@@ -92,7 +92,7 @@ async function main() {
         var json = JSON.stringify(req.body);
         fs.writeFile('ShopifyOrder.json', json);
         sendEmail(json)
-        
+
         res.sendStatus(200);
       } else {
         // No match! This request didn't originate from Shopify
