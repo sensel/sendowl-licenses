@@ -143,23 +143,17 @@ async function soft_auths(req,auth){
   // find the first record where there is no order ID ('lic_docs'), get the license info,
   // then update entry with the new info
   //returns an array of license info. Entry 0 is Arturia, entry 1 is Bitwig.
-  let lic_docs = await dbArturia.find({ order_id: '' }).limit(3);
+
+  let art_cart = [];
+  let index = 0
+  let lic_docs = await dbArturia.find({ order_id: '' }).limit(auth.arturia_all);
   for (let doc = await lic_docs.next(); doc != null; doc = await lic_docs.next()) {
-      console.log(`SERIALS: ${doc.serial}`);
+      art_cart[index] = [doc.serial,doc.unlock_code];
+      index++;
+      console.log(`ART SERIALS: ${doc.serial}`);
     }
 
-  lic_docs = await lic_docs.toArray();
-  console.log(`found: ${lic_docs.length} auths in the Arturia Database.`);
-  for(let i in lic_docs){
-    console.log(`docs: ${i} - ${lic_docs[i]}`);
-    for(let j in lic_docs[i]){
-      console.log(`j docs: ${j} - ${lic_docs[j]}`);
-    }
-  }
-
-  let art_cart = [[],[]];
-
-  if(lic_docs.length===auth.arturia_all){
+  if(art_cart.length===auth.arturia_all){
     let j = 0;
     for(let i of lic_docs){
       art_cart[j] = [lic_docs[i].serial,lic_docs[i].unlock_code];
@@ -172,23 +166,28 @@ async function soft_auths(req,auth){
   }
 
   //find the bitwig auths
-  lic_docs = await dbBitwig.find({ order_id: '' }).limit(auth.bitwig_8ts);
-  lic_docs = await lic_docs.toArray();
-  console.log(`found: ${lic_docs.length} auths in the Bitwig Database.`);
-  console.log(`docs: ${lic_docs}`);
 
   let bw_cart = [];
-
-  if(lic_docs.length===auth.bitwig_8ts){
-    let j = 0;
-    for(let i in lic_docs){
-      bw_cart[j] = [lic_docs[i].serial,lic_docs[i].unlock_code];
-      await update_db(req,lic_docs[i]._id,dbBitwig);
-      console.log(`++ Bitwig sn is ${bw_cart[j][0]}`);
+  lic_docs = await dbBitwig.find({ order_id: '' }).limit(auth.bitwig_8ts);
+    for (let doc = await lic_docs.next(); doc != null; doc = await lic_docs.next()) {
+        bw_cart[index] = doc.serial;
+        index++;
+        console.log(`BW SERIALS: ${doc.serial}`);
+      }
+  if(auth.bitwig_8ts>0){
+    if(lic_docs.length===auth.bitwig_8ts){
+      let j = 0;
+      for(let i in lic_docs){
+        bw_cart[j] = [lic_docs[i].serial,lic_docs[i].unlock_code];
+        await update_db(req,lic_docs[i]._id,dbBitwig);
+        console.log(`++ Bitwig sn is ${bw_cart[j][0]}`);
+      }
+    }else{
+      console.log('Need More Bitwig Serial Numbers');
+      bw_cart[1] = 'contact support@sensel.com for your Arturia license';
     }
   }else{
-    console.log('Need More Bitwig Serial Numbers');
-    bw_cart[1] = 'contact support@sensel.com for your Arturia license';
+    console.log('No Bitwig auths needed')
   }
   cart.arturia_all = art_cart;
   cart.bitwig_8ts = bw_cart;
