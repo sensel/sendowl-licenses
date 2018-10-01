@@ -144,9 +144,9 @@ async function soft_auths(req,auth){
   // then update entry with the new info
   //returns an array of license info. Entry 0 is Arturia, entry 1 is Bitwig.
   let lic_docs = await dbArturia.find({ order_id: '' }).limit(auth.arturia_all);
-  lic_docs = lic_docs.toArray();
+  lic_docs = await lic_docs.toArray();
   console.log(`found: ${lic_docs.length} auths in the Arturia Database.`);
-  console.log(lic_docs);
+  console.log(`docs: ${lic_docs}`);
 
   let art_cart = [[],[]];
 
@@ -164,9 +164,9 @@ async function soft_auths(req,auth){
 
   //find the bitwig auths
   lic_docs = await dbBitwig.find({ order_id: '' }).limit(auth.bitwig_8ts);
-  lic_docs = lic_docs.toArray();
+  lic_docs = await lic_docs.toArray();
   console.log(`found: ${lic_docs.length} auths in the Bitwig Database.`);
-  console.log(lic_docs);
+  console.log(`docs: ${lic_docs}`);
 
   let bw_cart = [];
 
