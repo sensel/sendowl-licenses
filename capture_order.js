@@ -8,7 +8,7 @@ const bodyParser = require('body-parser');
 let getRawBody = require('raw-body')
 
 const path = require('path');
-const PORT = process.env.PORT || 5000;
+const SERVER_PORT = process.env.PORT || 5000;
 //set in heroku https://devcenter.heroku.com/articles/config-vars using https://www.sendowl.com/settings/api_credentials
 let SOKEY = process.env.SO_KEY;
 let SOSECRET = process.env.SO_SECRET;
