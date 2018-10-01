@@ -101,8 +101,12 @@ function main() {
       res.send('SENSEL').status(200);
     })
 
-    .post('/shopify/webhook', process_get(req,res))
-    .post('/', process_get(req,res))
+    .post('/shopify/webhook', function(req, res){
+      process_get(req,res)
+    })
+    .post('/', function(req, res){
+      process_get(req,res)
+    })
 
     .listen(SERVER_PORT, () => console.log(`Sensel: We're listening on ${ SERVER_PORT }`));
 }
