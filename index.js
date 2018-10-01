@@ -208,9 +208,9 @@ async function sendTemplate(cart){
   }
   //figure out what email template to use
   if(cart.bitwig_8ts.length>0){
-    tempFile = art-all_bw-s8t.ejs;
+    tempFile = 'art-all_bw-s8t.ejs';
   }else{
-    tempFile = art-all.ejs;
+    tempFile = 'art-all.ejs';
   }
   const template = __dirname+'/emails/swcodes/'+tempFile; //art-all.ejs or art-all_bw-s8t.ejs
   const templateData = { bitwig_sn: bw_sn, arturia_sn: art_sn,arturia_uc: art_uc};
@@ -267,18 +267,16 @@ const gmail_transporter = nodemailer.createTransport({
 
 // setup email data
 const gmailOptions = {
-    from: '"Sensel - Your Free Software" <peter@sensel.com>', // sender address
+    from: '"Sensel Shop" <peter@sensel.com>', // sender address
     to: 'p@nbor.us', // list of receivers
-    subject: 'From Node App', // Subject line
+    subject: 'Sensel - Your Free Software', // Subject line
     text: 'Hello world', // plain text body
 };
 
 async function process_post(req, res) {
   console.log('We got an order!...');
-  for(let i in req){
-    console.log(`i: ${i}`);
-  }
-  console.log(`--rawbody: ${req.rawbody}`)
+
+  console.log(`--items in order: ${req.body.line_items}`)
   // We'll compare the hmac to our own hash
   const hmac = req.get('X-Shopify-Hmac-Sha256');
   console.log(`hmac: ${hmac}`);
