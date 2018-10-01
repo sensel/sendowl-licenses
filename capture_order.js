@@ -40,7 +40,7 @@ const gmailOptions = {
     text: 'Hello world', // plain text body
 };
 
-function async sendEmail(data){
+async function sendEmail(data){
   gmailOptions.text = data;
   console.log("======================>");
   gmail_transporter.sendMail(gmailOptions, function (err, info) {
@@ -52,7 +52,7 @@ function async sendEmail(data){
   });
 }
 
-function async process_get(req, res) {
+async function process_get(req, res) {
   console.log('We got an order!...');
   for(let i in req){
     console.log(`i: ${i}`);
