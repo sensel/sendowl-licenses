@@ -1,24 +1,24 @@
 
 require('dotenv').config();
-const crypto = require('crypto');
+let crypto = require('crypto');
 const nodemailer = require('nodemailer');
 const express = require('express');
 //handle POST from shopify webhook
 const bodyParser = require('body-parser');
-const path = require('path');
-let fs = require('fs');
-let ejs = require('ejs');
+let getRawBody = require('raw-body')
 
-let SERVER_PORT = process.env.PORT || 5000;
+const path = require('path');
+const PORT = process.env.PORT || 5000;
 //set in heroku https://devcenter.heroku.com/articles/config-vars using https://www.sendowl.com/settings/api_credentials
 let SOKEY = process.env.SO_KEY;
 let SOSECRET = process.env.SO_SECRET;
 const SHOPSECRET = process.env.SHOPIFY_SHARED_SECRET;
 //only set locally
 const ISLOCAL = process.env.LOCAL;
+const EMAIL = process.env.EMAIL_USER;
+const EPASS = process.env.EMAIL_PASS;
 const GMAIL = process.env.GMAIL_USER;
 const GPASS = process.env.GMAIL_PASS;
-
 
 
 ///SETUP Email service
@@ -52,9 +52,14 @@ function sendEmail(data){
 }
 
 function process_get(req, res) {
-  console.log('We got an order!')
+  console.log('We got an order!...');
+  for(let i in req){
+    console.log(i);
+    console.log(req[i]);
+  }
   // We'll compare the hmac to our own hash
   const hmac = req.get('X-Shopify-Hmac-Sha256');
+  console.log(`hmac: ${hmac}`);
   // Use raw-body to get the body (buffer)
   //const body = JSON.stringify(req.body);
   // Create a hash using the body and our key
