@@ -75,8 +75,13 @@ function process_get(req, res) {
     console.log('Phew, it came from Shopify!');
 
     var json = JSON.stringify(req.body);
-    fs.writeFile('ShopifyOrder.json', json);
-    sendEmail(json)
+    sendEmail(json);
+    fs.writeFile('ShopifyExample.txt', json, (err) => {
+    // throws an error, you could also catch it here
+    if (err) throw err;
+    // success case, the file was saved
+    console.log('Order JSON saved!');
+});
 
     res.sendStatus(200);
   } else {
