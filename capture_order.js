@@ -52,55 +52,56 @@ function sendEmail(data){
 }
 
 
-// create a server that listens for URLs with order info.
-express()
-  .use(express.static(path.join(__dirname, 'public')))
-  .use(bodyParser.json({
-      type:'application/json',
-      limit: '50mb',
-      verify: function(req, res, buf) {
-          if (req.url.startsWith('/shopify')){
-            req.rawbody = buf;
-          }
+function main() {
+  // create a server that listens for URLs with order info.
+  express()
+    .use(express.static(path.join(__dirname, 'public')))
+    .use(bodyParser.json({
+        type:'application/json',
+        limit: '50mb',
+        verify: function(req, res, buf) {
+            if (req.url.startsWith('/shopify')){
+              req.rawbody = buf;
+            }
+        }
+    })
+    )
+    .use(bodyParser.urlencoded({ extended: true }))
+
+    .get('/', function(req, res) {
+      console.log('get it');
+      res.send('SENSEL').status(200);
+    })
+
+    .post('/shopify/webhook', function(req, res) {
+      console.log('We got an order!')
+      // We'll compare the hmac to our own hash
+      const hmac = req.get('X-Shopify-Hmac-Sha256');
+      // Use raw-body to get the body (buffer)
+      //const body = JSON.stringify(req.body);
+      // Create a hash using the body and our key
+      const hash = crypto
+        .createHmac('sha256', SHOPSECRET)
+        .update(req.rawbody, 'utf8', 'hex')
+        .digest('base64');
+
+      // Compare our hash to Shopify's hash
+      if (hash === hmac) {
+        // It's a match! All good
+        console.log('Phew, it came from Shopify!');
+
+        var json = JSON.stringify(req.body);
+        fs.writeFile('ShopifyOrder.json', json);
+        sendEmail(json)
+
+        res.sendStatus(200);
+      } else {
+        // No match! This request didn't originate from Shopify
+        console.log('Danger! Not from Shopify!');
+        res.sendStatus(403);
       }
-  })
-  )
-  .use(bodyParser.urlencoded({ extended: true }))
+    })
 
-  .get('/', function(req, res) {
-    console.log('get it');
-    res.send('SENSEL').status(200);
-  })
-
-  .post('/shopify/webhook', async function(req, res) {
-    console.log('We got an order!')
-    // We'll compare the hmac to our own hash
-    const hmac = req.get('X-Shopify-Hmac-Sha256');
-    // Use raw-body to get the body (buffer)
-    //const body = JSON.stringify(req.body);
-    // Create a hash using the body and our key
-    const hash = crypto
-      .createHmac('sha256', SHOPSECRET)
-      .update(req.rawbody, 'utf8', 'hex')
-      .digest('base64');
-
-    // Compare our hash to Shopify's hash
-    if (hash === hmac) {
-      // It's a match! All good
-      console.log('Phew, it came from Shopify!');
-
-      var json = JSON.stringify(req.body);
-      fs.writeFile('ShopifyOrder.json', json);
-      sendEmail(json)
-
-      res.sendStatus(200);
-    } else {
-      // No match! This request didn't originate from Shopify
-      console.log('Danger! Not from Shopify!');
-      res.sendStatus(403);
-    }
-  })
-
-  .listen(SERVER_PORT, () => console.log(`Sensel: We're listening on ${ SERVER_PORT }`));
-
-// main();
+    .listen(SERVER_PORT, () => console.log(`Sensel: We're listening on ${ SERVER_PORT }`));
+}
+main();
