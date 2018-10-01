@@ -143,41 +143,47 @@ async function soft_auths(req,auth){
   // find the first record where there is no order ID ('lic_docs'), get the license info,
   // then update entry with the new info
   //returns an array of license info. Entry 0 is Arturia, entry 1 is Bitwig.
+
+  //find the Arturia auths
   let lic_docs = await dbArturia.find({ 'order_id': '' }).limit(auth.arturia_all);
-  console.log(`found: ${lic_docs.length} auths in the Arturia Database.`);
-  console.log(lic_docs);
+  lic_docs.toArray((err, result) => {
+    console.log(`found: ${result.length} auths in the Arturia Database.`);
+    console.log(result);
 
-  let art_cart = [[],[]];
+    let art_cart = [[],[]];
 
-  if(lic_docs.length===auth.arturia_all){
-    let j = 0;
-    for(let i of lic_docs){
-      art_cart[j] = [lic_docs[i].serial,lic_docs[i].unlock_code];
-      await update_db(req,lic_docs[i]._id,dbArturia);
-      console.log(`++ Arturia sn and unlock are ${art_cart[j][0]} | ${art_cart[j][1]}`);
+    if(result.length===auth.arturia_all){
+      let j = 0;
+      for(let i of lic_docs){
+        art_cart[j] = [result[i].serial,result[i].unlock_code];
+        await update_db(req,result[i]._id,dbArturia);
+        console.log(`++ Arturia sn and unlock are ${art_cart[j][0]} | ${art_cart[j][1]}`);
+      }
+    }else{
+      console.log('Need More Arturia Serial Numbers and Unlock Codes');
+      art_cart[0] = 'contact support@sensel.com for your Arturia license';
     }
-  }else{
-    console.log('Need More Arturia Serial Numbers and Unlock Codes');
-    art_cart[0] = 'contact support@sensel.com for your Arturia license';
   }
-
+  
   //find the bitwig auths
   lic_docs = await dbBitwig.find({ 'order_id': '' }).limit(auth.bitwig_8ts);
-  console.log(`found: ${lic_docs.length} auths in the Bitwig Database.`);
-  console.log(lic_docs);
+  lic_docs.toArray((err, result) => {
+    console.log(`found: ${result.length} auths in the Bitwig Database.`);
+    console.log(result);
 
-  let bw_cart = [];
+    let bw_cart = [];
 
-  if(lic_docs.length===auth.bitwig_8ts){
-    let j = 0;
-    for(let i in lic_docs){
-      bw_cart[j] = [lic_docs[i].serial,lic_docs[i].unlock_code];
-      await update_db(req,lic_docs[i]._id,dbBitwig);
-      console.log(`++ Bitwig sn is ${bw_cart[j][0]}`);
+    if(lic_docs.length===auth.bitwig_8ts){
+      let j = 0;
+      for(let i in result){
+        bw_cart[j] = [result[i].serial,result[i].unlock_code];
+        await update_db(req,result[i]._id,dbBitwig);
+        console.log(`++ Bitwig sn is ${bw_cart[j][0]}`);
+      }
+    }else{
+      console.log('Need More Bitwig Serial Numbers');
+      bw_cart[1] = 'contact support@sensel.com for your Arturia license';
     }
-  }else{
-    console.log('Need More Bitwig Serial Numbers');
-    bw_cart[1] = 'contact support@sensel.com for your Arturia license';
   }
   cart.arturia_all = art_cart;
   cart.bitwig_8ts = bw_cart;
