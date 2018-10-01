@@ -145,19 +145,20 @@ async function soft_auths(req,auth){
   //returns an array of license info. Entry 0 is Arturia, entry 1 is Bitwig.
 
   let art_cart = [];
+  let ids = [];
   let index = 0
   let lic_docs = await dbArturia.find({ order_id: '' }).limit(auth.arturia_all);
   for (let doc = await lic_docs.next(); doc != null; doc = await lic_docs.next()) {
       art_cart[index] = [doc.serial,doc.unlock_code];
+      ids[index] = [doc._id];
       index++;
       console.log(`ART SERIALS: ${doc.serial}`);
     }
 
   if(art_cart.length===auth.arturia_all){
     let j = 0;
-    for(let i of lic_docs){
-      art_cart[j] = [lic_docs[i].serial,lic_docs[i].unlock_code];
-      await update_db(req,lic_docs[i]._id,dbArturia);
+    for(let i of art_cart){
+      await update_db(req,ids[i],dbArturia);
       console.log(`++ Arturia sn and unlock are ${art_cart[j][0]} | ${art_cart[j][1]}`);
     }
   }else{
@@ -166,20 +167,20 @@ async function soft_auths(req,auth){
   }
 
   //find the bitwig auths
-
+  ids = [];
   let bw_cart = [];
   lic_docs = await dbBitwig.find({ order_id: '' }).limit(auth.bitwig_8ts);
     for (let doc = await lic_docs.next(); doc != null; doc = await lic_docs.next()) {
         bw_cart[index] = doc.serial;
+        ids[index] = doc._id;
         index++;
         console.log(`BW SERIALS: ${doc.serial}`);
       }
   if(auth.bitwig_8ts>0){
-    if(lic_docs.length===auth.bitwig_8ts){
+    if(bw_cart.length===auth.bitwig_8ts){
       let j = 0;
       for(let i in lic_docs){
-        bw_cart[j] = [lic_docs[i].serial,lic_docs[i].unlock_code];
-        await update_db(req,lic_docs[i]._id,dbBitwig);
+        await update_db(req,ids[i],dbBitwig);
         console.log(`++ Bitwig sn is ${bw_cart[j][0]}`);
       }
     }else{
