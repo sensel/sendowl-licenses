@@ -69,6 +69,7 @@ function main() {
     .use(bodyParser.urlencoded({ extended: true }))
 
     .get('/', function(req, res) {
+      console.log('get it')
       res.send('SENSEL').status(200);
     })
 
