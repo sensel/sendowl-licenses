@@ -144,6 +144,10 @@ async function soft_auths(req,auth){
   // then update entry with the new info
   //returns an array of license info. Entry 0 is Arturia, entry 1 is Bitwig.
   let lic_docs = await dbArturia.find({ order_id: '' }).limit(auth.arturia_all);
+  for (let doc = await lic_docs.next(); doc != null; doc = await lic_docs.next()) {
+      console.log(`SERIALS: ${doc.serial}`);
+    }
+
   lic_docs = await lic_docs.toArray();
   console.log(`found: ${lic_docs.length} auths in the Arturia Database.`);
   for(let i in lic_docs){
