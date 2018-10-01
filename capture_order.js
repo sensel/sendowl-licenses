@@ -6,7 +6,7 @@ const express = require('express');
 //handle POST from shopify webhook
 const bodyParser = require('body-parser');
 let getRawBody = require('raw-body')
-
+let fs = require('fs');
 const path = require('path');
 const SERVER_PORT = process.env.PORT || 5000;
 //set in heroku https://devcenter.heroku.com/articles/config-vars using https://www.sendowl.com/settings/api_credentials
@@ -19,6 +19,7 @@ const EMAIL = process.env.EMAIL_USER;
 const EPASS = process.env.EMAIL_PASS;
 const GMAIL = process.env.GMAIL_USER;
 const GPASS = process.env.GMAIL_PASS;
+
 
 
 ///SETUP Email service
