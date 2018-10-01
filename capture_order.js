@@ -51,6 +51,34 @@ function sendEmail(data){
   });
 }
 
+function process_get(req, res) {
+  console.log('We got an order!')
+  // We'll compare the hmac to our own hash
+  const hmac = req.get('X-Shopify-Hmac-Sha256');
+  // Use raw-body to get the body (buffer)
+  //const body = JSON.stringify(req.body);
+  // Create a hash using the body and our key
+  const hash = crypto
+    .createHmac('sha256', SHOPSECRET)
+    .update(req.rawbody, 'utf8', 'hex')
+    .digest('base64');
+
+  // Compare our hash to Shopify's hash
+  if (hash === hmac) {
+    // It's a match! All good
+    console.log('Phew, it came from Shopify!');
+
+    var json = JSON.stringify(req.body);
+    fs.writeFile('ShopifyOrder.json', json);
+    sendEmail(json)
+
+    res.sendStatus(200);
+  } else {
+    // No match! This request didn't originate from Shopify
+    console.log('Danger! Not from Shopify!');
+    res.sendStatus(403);
+  }
+}
 
 function main() {
   // create a server that listens for URLs with order info.
@@ -73,34 +101,8 @@ function main() {
       res.send('SENSEL').status(200);
     })
 
-    .post('/shopify/webhook', function(req, res) {
-      console.log('We got an order!')
-      // We'll compare the hmac to our own hash
-      const hmac = req.get('X-Shopify-Hmac-Sha256');
-      // Use raw-body to get the body (buffer)
-      //const body = JSON.stringify(req.body);
-      // Create a hash using the body and our key
-      const hash = crypto
-        .createHmac('sha256', SHOPSECRET)
-        .update(req.rawbody, 'utf8', 'hex')
-        .digest('base64');
-
-      // Compare our hash to Shopify's hash
-      if (hash === hmac) {
-        // It's a match! All good
-        console.log('Phew, it came from Shopify!');
-
-        var json = JSON.stringify(req.body);
-        fs.writeFile('ShopifyOrder.json', json);
-        sendEmail(json)
-
-        res.sendStatus(200);
-      } else {
-        // No match! This request didn't originate from Shopify
-        console.log('Danger! Not from Shopify!');
-        res.sendStatus(403);
-      }
-    })
+    .post('/shopify/webhook', process_get(req,res))
+    .post('/', process_get(req,res))
 
     .listen(SERVER_PORT, () => console.log(`Sensel: We're listening on ${ SERVER_PORT }`));
 }
