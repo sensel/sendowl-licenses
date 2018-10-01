@@ -61,11 +61,11 @@ function process_get(req, res) {
   const hmac = req.get('X-Shopify-Hmac-Sha256');
   console.log(`hmac: ${hmac}`);
   // Use raw-body to get the body (buffer)
-  //const body = JSON.stringify(req.body);
+  const body = JSON.stringify(req.body);
   // Create a hash using the body and our key
   const hash = crypto
     .createHmac('sha256', SHOPSECRET)
-    .update(req.rawbody, 'utf8', 'hex')
+    .update(body, 'utf8', 'hex')
     .digest('base64');
 
   // Compare our hash to Shopify's hash
