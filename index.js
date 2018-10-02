@@ -112,12 +112,12 @@ async function parseOrderInfo (req,res){
       console.log('SENSEL TEST PRODUCT');
       if(variant=="Innovator's"){
         console.log('INNOVATOR OVERLAY VARIANT');
-        auths_needed.arturia_all = auths_needed.arturia_all ++;
+        auths_needed.arturia_all = auths_needed.arturia_all + 1;
       }
       if(variant=="Piano"){
         console.log('PIANO VARIANT');
-        auths_needed.bitwig_8ts = auths_needed.bitwig_8ts ++;
-        auths_needed.arturia_all = auths_needed.arturia_all ++;
+        auths_needed.bitwig_8ts = auths_needed.bitwig_8ts + 1;
+        auths_needed.arturia_all = auths_needed.arturia_all + 1;
       }
     }
   }
@@ -230,8 +230,10 @@ async function sendTemplate(cart){
   //figure out what email template to use
   if(cart.bitwig_8ts.length>0){
     tempFile = 'art-all_bw-s8t.ejs';
+    console.log('using email template for arturia and bitwig ');
   }else{
     tempFile = 'art-all.ejs';
+    console.log('using email template for arturia ');
   }
   const template = __dirname+'/emails/swcodes/'+tempFile; //art-all.ejs or art-all_bw-s8t.ejs
   const templateData = { bitwig_sn: bw_sn, arturia_sn: art_sn,arturia_uc: art_uc};
