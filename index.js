@@ -123,9 +123,13 @@ async function parseOrderInfo (req,res){
   }
   console.log(`-----done scanning order. need ${auths_needed.arturia_all} Arturia licenses and ${auths_needed.bitwig_8ts} Bitwig licenses----`);
   //now go through db and get the auth keys as needed
-  let auth_cart = await soft_auths(req,auths_needed);
-  //email the contents of cart to customer
-  await sendTemplate(auth_cart);
+  if(auths_needed.arturia_all>0 || auths_needed.bitwig_8ts>0){
+    let auth_cart = await soft_auths(req,auths_needed);
+    //email the contents of cart to customer
+    await sendTemplate(auth_cart);
+  }else{
+    console.log('no Serials needed for this order');
+  }
 
 }
 
@@ -169,14 +173,14 @@ async function soft_auths(req,auth){
   //find the bitwig auths
   ids = [];
   let bw_cart = [];
-  lic_docs = await dbBitwig.find({ order_id: '' }).limit(auth.bitwig_8ts);
+  if(auth.bitwig_8ts>0){
+    lic_docs = await dbBitwig.find({ order_id: '' }).limit(auth.bitwig_8ts);
     for (let doc = await lic_docs.next(); doc != null; doc = await lic_docs.next()) {
         bw_cart[index] = doc.serial;
         ids[index] = doc._id;
         index++;
         console.log(`BW SERIALS: ${doc.serial}`);
       }
-  if(auth.bitwig_8ts>0){
     if(bw_cart.length===auth.bitwig_8ts){
       let j = 0;
       for(let i in lic_docs){
@@ -192,6 +196,7 @@ async function soft_auths(req,auth){
   }
   cart.arturia_all = art_cart;
   cart.bitwig_8ts = bw_cart;
+  console.log(`>> lengths: ${cart.arturia_all.length} , ${cart.bitwig_8ts.length}`);
   return cart;
 }
 
@@ -220,7 +225,7 @@ async function sendTemplate(cart){
     art_uc += cart.arturia_all[i][1]+' \n';
   }
   for(let i in cart.bitwig_8ts){
-    bw_sn += cart.bitwig_8ts[i][0]+' \n';
+    bw_sn += cart.bitwig_8ts[i]+' \n';
   }
   //figure out what email template to use
   if(cart.bitwig_8ts.length>0){
