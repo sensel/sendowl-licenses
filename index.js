@@ -220,18 +220,18 @@ async function update_db (req,rec_id,db_select){
 }
 
 async function sendTemplate(cart){
-  let art_sn = '\n';
-  let art_uc = '\n';
-  let bw_sn = '\n';
+  let art_sn = '<br>';
+  let art_uc = '<br>';
+  let bw_sn =  '<br>';
   let tempFile = '';
 
   // create strings of the auth codes from the cart
   for(let i in cart.arturia_all){
-    art_sn += cart.arturia_all[i][0]+' \n';
-    art_uc += cart.arturia_all[i][1]+' \n';
+    art_sn += cart.arturia_all[i][0]+' <br>';
+    art_uc += cart.arturia_all[i][1]+' <br>';
   }
   for(let i in cart.bitwig_8ts){
-    bw_sn += cart.bitwig_8ts[i]+' \n';
+    bw_sn += cart.bitwig_8ts[i]+' <br>';
   }
   console.log(`arturia : ${art_sn} , ${art_uc} - bitwig : ${bw_sn}`)
   //figure out what email template to use
