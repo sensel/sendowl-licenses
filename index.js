@@ -164,7 +164,7 @@ async function soft_auths(req,auth){
   if(art_cart.length===auth.arturia_all){
     for(let i of art_cart){
       await update_db(req,ids[i],dbArturia);
-      console.log(`++ Arturia sn and unlock are ${art_cart[i]}`);
+      console.log(`++ Arturia sn and unlock are ${art_cart[i]} id ${ids[i]} - ${i}`);
     }
   }else{
     console.log('Need More Arturia Serial Numbers and Unlock Codes');
