@@ -156,16 +156,15 @@ async function soft_auths(req,auth){
   let lic_docs = await dbArturia.find({ order_id: '' }).limit(auth.arturia_all);
   for (let doc = await lic_docs.next(); doc != null; doc = await lic_docs.next()) {
       art_cart[index] = [doc.serial,doc.unlock_code];
-      ids[index] = [doc._id];
+      ids[index] = doc._id;
       index++;
       console.log(`ART SERIALS: ${doc.serial}`);
     }
   console.log(`check lengths- cart: ${art_cart.length} vs needed ${auth.arturia_all}`)
   if(art_cart.length===auth.arturia_all){
-    let j = 0;
     for(let i of art_cart){
       await update_db(req,ids[i],dbArturia);
-      console.log(`++ Arturia sn and unlock are ${art_cart[j][0]} | ${art_cart[j][1]}`);
+      console.log(`++ Arturia sn and unlock are ${art_cart[i][0]} | ${art_cart[i][1]}`);
     }
   }else{
     console.log('Need More Arturia Serial Numbers and Unlock Codes');
@@ -189,7 +188,7 @@ async function soft_auths(req,auth){
       let j = 0;
       for(let i in bw_cart){
         await update_db(req,ids[i],dbBitwig);
-        console.log(`++ Bitwig sn is ${bw_cart[0]}`);
+        console.log(`++ Bitwig sn is ${bw_cart[i]}`);
       }
     }else{
       console.log('Need More Bitwig Serial Numbers');
@@ -219,6 +218,7 @@ async function update_db (req,rec_id,db_select){
   console.log('customer_name added');
 }
 
+//need to add an email "to"
 async function sendTemplate(cart){
   let art_sn = '<br>';
   let art_uc = '<br>';
@@ -250,6 +250,7 @@ async function sendTemplate(cart){
     if (err) {
         console.log(err);
     } else {
+        gmailOptions.subject='Sensel - Your Free Software';
         gmailOptions.html = data;
         console.log("======================>");
         gmail_transporter.sendMail(gmailOptions, function (err, info) {
@@ -264,6 +265,15 @@ async function sendTemplate(cart){
 }
 
 async function sendemail() {
+  gmailOptions.to='peter@sensel.com';
+  gmailOptions.html = '';
+  gmail_transporter.sendMail(gmailOptions, function (err, info) {
+      if (err) {
+          console.log(err);
+      } else {
+          console.log('Message sent: ' + info.response);
+      }
+  });
   return 'email sent';
 }
 
