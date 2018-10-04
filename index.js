@@ -1,8 +1,9 @@
 //TO DO:
-//soft_auths needs to be changed to handle multiple licenses as needed from parseOrder results
-//need to incorporate the actual email system
+
+
+
 //figure out major failures - check for failures and email me if it happens
-//collect the order data from Shopify for testing
+
 //need to initialize the database in herokuapp
 //  put heroku in maintenace mode
 //  then run the init db using the heroku command line tool (heroku run, exec, or task)
@@ -158,7 +159,7 @@ async function soft_auths(req,auth){
       index++;
       console.log(`ART SERIALS: ${doc.serial}`);
     }
-
+  console.log(`check lengths- cart: ${art_cart.length} vs needed ${auth.arturia_all}`)
   if(art_cart.length===auth.arturia_all){
     let j = 0;
     for(let i of art_cart){
@@ -167,7 +168,7 @@ async function soft_auths(req,auth){
     }
   }else{
     console.log('Need More Arturia Serial Numbers and Unlock Codes');
-    art_cart[0] = 'contact support@sensel.com for your Arturia license';
+    art_cart = [];
   }
 
   //find the bitwig auths
@@ -181,6 +182,7 @@ async function soft_auths(req,auth){
         index++;
         console.log(`BW SERIALS: ${doc.serial}`);
       }
+    console.log(`check lengths- cart: ${bw_cart.length} vs needed ${auth.bitwig_8ts}`)
     if(bw_cart.length===auth.bitwig_8ts){
       let j = 0;
       for(let i in lic_docs){
@@ -189,7 +191,7 @@ async function soft_auths(req,auth){
       }
     }else{
       console.log('Need More Bitwig Serial Numbers');
-      bw_cart[1] = 'contact support@sensel.com for your Arturia license';
+      bw_cart = [];
     }
   }else{
     console.log('No Bitwig auths needed')
