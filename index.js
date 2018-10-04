@@ -218,9 +218,12 @@ async function update_db (req,rec_id,db_select){
 }
 
 async function sendTemplate(cart){
-  // cart.arturia_all;
-  // cart.bitwig_8ts;
-  let art_sn, art_uc, bw_sn, tempFile;
+  let art_sn = '';
+  let art_uc = '';
+  let bw_sn = '';
+  let tempFile = '';
+
+
   // create strings of the auth codes from the cart
   for(let i in cart.arturia_all){
     art_sn += cart.arturia_all[i][0]+' \n';
@@ -229,6 +232,7 @@ async function sendTemplate(cart){
   for(let i in cart.bitwig_8ts){
     bw_sn += cart.bitwig_8ts[i]+' \n';
   }
+  console.log(`arturia : ${art_sn} , ${art_uc} - bitwig : ${bw_sn}`)
   //figure out what email template to use
   if(cart.bitwig_8ts.length>0){
     tempFile = 'art-all_bw-s8t.ejs';
@@ -237,7 +241,6 @@ async function sendTemplate(cart){
     tempFile = 'art-all.ejs';
     console.log('using email template for arturia ');
   }
-  console.log(`for template bitwig s/n: ${bw_sn} arturia numbers: ${art_sn} , ${art_uc}`)
   const template = __dirname+'/emails/swcodes/'+tempFile; //art-all.ejs or art-all_bw-s8t.ejs
   const templateData = { bitwig_sn: bw_sn, arturia_sn: art_sn, arturia_uc: art_uc};
   console.log('Begin....');
