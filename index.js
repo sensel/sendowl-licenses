@@ -168,7 +168,7 @@ async function soft_auths(req,auth){
     }
   }else{
     console.log('Need More Arturia Serial Numbers and Unlock Codes');
-    art_cart = [];
+    art_cart = -1;
   }
 
   //find the bitwig auths
@@ -192,7 +192,7 @@ async function soft_auths(req,auth){
       }
     }else{
       console.log('Need More Bitwig Serial Numbers');
-      bw_cart = [];
+      bw_cart = -1;
     }
   }else{
     console.log('No Bitwig auths needed')
@@ -224,14 +224,21 @@ async function sendTemplate(cart){
   let art_uc = '<br>';
   let bw_sn =  '<br>';
   let tempFile = '';
-
-  // create strings of the auth codes from the cart
-  for(let i in cart.arturia_all){
-    art_sn += cart.arturia_all[i][0]+' <br>';
-    art_uc += cart.arturia_all[i][1]+' <br>';
+  if(cart.arturia_all != -1)
+    // create strings of the auth codes from the cart
+    for(let i in cart.arturia_all){
+      art_sn += cart.arturia_all[i][0]+' <br>';
+      art_uc += cart.arturia_all[i][1]+' <br>';
+    }
+  }else{
+    art_sn = 'please contact <a href="mailto:support@sensel.com">support@sensel.com</a> for your Arturia serial numbers'
   }
-  for(let i in cart.bitwig_8ts){
-    bw_sn += cart.bitwig_8ts[i]+' <br>';
+  if(cart.bw_8ts != -1){
+    for(let i in cart.bitwig_8ts){
+      bw_sn += cart.bitwig_8ts[i]+' <br>';
+    }
+  }else{
+    bw_sn = 'please contact <a href="mailto:support@sensel.com">support@sensel.com</a> for your Bitwig serial numbers'
   }
   console.log(`arturia : ${art_sn} , ${art_uc} - bitwig : ${bw_sn}`)
   //figure out what email template to use
@@ -331,12 +338,12 @@ async function process_post(req, res) {
   // Compare our hash to Shopify's hash
   if (hash === hmac) {
     // It's a match! All good
-    console.log('Phew, it came from Shopify!');
-
+    console.log('Authorized Order, it came from Shopify!');
     await dbDo(async (db) => {
       dbBitwig = db.collection('bitwig-licenses');
       dbArturia = db.collection('arturia-licenses');
 
+      check_counts();
       //Order came from Shopify, so we'll parse the info and email the customer relevant software licenses.
       await parseOrderInfo(req,res);
     });
