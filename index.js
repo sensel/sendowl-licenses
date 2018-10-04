@@ -221,7 +221,6 @@ async function sendTemplate(cart){
   // cart.arturia_all;
   // cart.bitwig_8ts;
   let art_sn, art_uc, bw_sn, tempFile;
-  console.log(`arturia cart: ${cart.arturia_all} bitwig cart: ${cart.bitwig_8ts}`)
   // create strings of the auth codes from the cart
   for(let i in cart.arturia_all){
     art_sn += cart.arturia_all[i][0]+' \n';
@@ -238,8 +237,9 @@ async function sendTemplate(cart){
     tempFile = 'art-all.ejs';
     console.log('using email template for arturia ');
   }
+  console.log(`for template bitwig s/n: ${bw_sn} arturia numbers: ${art_sn} , ${art_uc}`)
   const template = __dirname+'/emails/swcodes/'+tempFile; //art-all.ejs or art-all_bw-s8t.ejs
-  const templateData = { bitwig_sn: bw_sn, arturia_sn: art_sn,arturia_uc: art_uc};
+  const templateData = { bitwig_sn: bw_sn, arturia_sn: art_sn, arturia_uc: art_uc};
   console.log('Begin....');
   ejs.renderFile(template, templateData , function (err, data) {
     console.log('******')
