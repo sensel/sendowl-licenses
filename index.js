@@ -221,6 +221,7 @@ async function sendTemplate(cart){
   // cart.arturia_all;
   // cart.bitwig_8ts;
   let art_sn, art_uc, bw_sn, tempFile;
+  console.log(`arturia cart: ${cart.arturia_all} bitwig cart: ${cart.bitwig_8ts}`)
   // create strings of the auth codes from the cart
   for(let i in cart.arturia_all){
     art_sn += cart.arturia_all[i][0]+' \n';
