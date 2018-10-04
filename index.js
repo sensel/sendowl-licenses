@@ -162,7 +162,7 @@ async function soft_auths(req,auth){
     }
   console.log(`check lengths- cart: ${art_cart.length} vs needed ${auth.arturia_all}`)
   if(art_cart.length===auth.arturia_all){
-    for(let i of art_cart){
+    for(let i in art_cart){
       await update_db(req,ids[i],dbArturia);
       console.log(`++ Arturia sn and unlock are ${art_cart[i]} id ${ids[i]} - ${i}`);
     }
