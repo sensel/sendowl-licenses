@@ -172,8 +172,9 @@ async function soft_auths(req,auth){
   }
 
   //find the bitwig auths
-  ids = [];
   let bw_cart = [];
+  ids = [];
+  index = 0;
   if(auth.bitwig_8ts>0){
     lic_docs = await dbBitwig.find({ order_id: '' }).limit(auth.bitwig_8ts);
     for (let doc = await lic_docs.next(); doc != null; doc = await lic_docs.next()) {
