@@ -90,35 +90,36 @@ async function parseOrderInfo (req,res){
   for (let i in req.body.line_items){
     const title = req.body.line_items[i]['title'];
     const variant = req.body.line_items[i]['variant_title'];
+    const quantity = req.body.line_items[i]['quantity'];
 
     console.log('++   Cart Item '+i+': '+title+' w/ '+variant);
 
     if(title == 'The Sensel Morph with 1 Overlay'){
       if(variant=='Music Production' || variant=='Piano' || variant=='Drum Pad' || variant=="Innovator's"){
         //provide Arturia and Bitwig code
-        auths_needed.bitwig_8ts = auths_needed.bitwig_8ts + 1;
-        auths_needed.arturia_all = auths_needed.arturia_all + 1;
+        auths_needed.bitwig_8ts = auths_needed.bitwig_8ts + quantity;
+        auths_needed.arturia_all = auths_needed.arturia_all + quantity;
       }else{
         //provide only Arturia
-        auths_needed.arturia_all = auths_needed.arturia_all + 1;
+        auths_needed.arturia_all = auths_needed.arturia_all + quantity;
       }
     }
     if(title == "Morph Music Maker's Bundle"){
       //provide Arturia and Bitwig Codes
-      auths_needed.bitwig_8ts = auths_needed.bitwig_8ts + 1;
-      auths_needed.arturia_all = auths_needed.arturia_all + 1;
+      auths_needed.bitwig_8ts = auths_needed.bitwig_8ts + quantity;
+      auths_needed.arturia_all = auths_needed.arturia_all + quantity;
     }
     //using test products:
     if(title == 'SenselTest'){
       console.log('SENSEL TEST PRODUCT');
       if(variant=="Innovator's"){
         console.log('INNOVATOR OVERLAY VARIANT');
-        auths_needed.arturia_all = auths_needed.arturia_all + 1;
+        auths_needed.arturia_all = auths_needed.arturia_all + quantity;
       }
       if(variant=="Piano"){
         console.log('PIANO VARIANT');
-        auths_needed.bitwig_8ts = auths_needed.bitwig_8ts + 1;
-        auths_needed.arturia_all = auths_needed.arturia_all + 1;
+        auths_needed.bitwig_8ts = auths_needed.bitwig_8ts + quantity;
+        auths_needed.arturia_all = auths_needed.arturia_all + quantity;
       }
     }
   }
