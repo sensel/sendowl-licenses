@@ -186,9 +186,9 @@ async function soft_auths(req,auth){
     console.log(`check lengths- cart: ${bw_cart.length} vs needed ${auth.bitwig_8ts}`)
     if(bw_cart.length===auth.bitwig_8ts){
       let j = 0;
-      for(let i in lic_docs){
+      for(let i in bw_cart){
         await update_db(req,ids[i],dbBitwig);
-        console.log(`++ Bitwig sn is ${bw_cart[j][0]}`);
+        console.log(`++ Bitwig sn is ${bw_cart[0]}`);
       }
     }else{
       console.log('Need More Bitwig Serial Numbers');
