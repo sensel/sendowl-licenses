@@ -242,7 +242,7 @@ async function sendTemplate(cart){
   }else{
     bw_sn = 'please contact <a href="mailto:support@sensel.com">support@sensel.com</a> for your Bitwig serial numbers'
   }
-  
+
   console.log(`arturia : ${art_sn} , ${art_uc} - bitwig : ${bw_sn}`)
   //figure out what email template to use
   if(cart.bitwig_8ts.length>0){
@@ -318,7 +318,7 @@ const gmail_transporter = nodemailer.createTransport({
 // setup email data
 const gmailOptions = {
     from: '"Sensel Shop" <peter@sensel.com>', // sender address
-    to: 'p@nbor.us', // list of receivers
+    to: 'p@nbor.us, mark@sensel.com, xiaoye@sensel.com', // list of receivers
     subject: 'Sensel - Your Free Software', // Subject line
     text: 'Hello world', // plain text body
 };
