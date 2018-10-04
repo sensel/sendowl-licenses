@@ -224,7 +224,8 @@ async function sendTemplate(cart){
   let art_uc = '<br>';
   let bw_sn =  '<br>';
   let tempFile = '';
-  if(cart.arturia_all != -1)
+
+  if(cart.arturia_all != -1){
     // create strings of the auth codes from the cart
     for(let i in cart.arturia_all){
       art_sn += cart.arturia_all[i][0]+' <br>';
@@ -233,6 +234,7 @@ async function sendTemplate(cart){
   }else{
     art_sn = 'please contact <a href="mailto:support@sensel.com">support@sensel.com</a> for your Arturia serial numbers'
   }
+
   if(cart.bw_8ts != -1){
     for(let i in cart.bitwig_8ts){
       bw_sn += cart.bitwig_8ts[i]+' <br>';
@@ -240,6 +242,7 @@ async function sendTemplate(cart){
   }else{
     bw_sn = 'please contact <a href="mailto:support@sensel.com">support@sensel.com</a> for your Bitwig serial numbers'
   }
+  
   console.log(`arturia : ${art_sn} , ${art_uc} - bitwig : ${bw_sn}`)
   //figure out what email template to use
   if(cart.bitwig_8ts.length>0){
