@@ -92,8 +92,8 @@ async function parseOrderInfo (req,res){
     const variant = req.body.line_items[i]['variant_title'];
     const quantity = req.body.line_items[i]['quantity'];
 
-    console.log('++   Cart Item '+i+': '+title+' w/ '+variant);
-
+    console.log('++   Cart Item '+i+': '+title+' w/ '+variant+' qty: '+quantity);
+    console.log(`current auth needs- art: ${auths_needed.arturia_all} , bw: ${auths_needed.bitwig_8ts}`)
     if(title == 'The Sensel Morph with 1 Overlay'){
       if(variant=='Music Production' || variant=='Piano' || variant=='Drum Pad' || variant=="Innovator's"){
         //provide Arturia and Bitwig code
