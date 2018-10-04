@@ -219,11 +219,10 @@ async function update_db (req,rec_id,db_select){
 }
 
 async function sendTemplate(cart){
-  let art_sn = '';
-  let art_uc = '';
-  let bw_sn = '';
+  let art_sn = '\n';
+  let art_uc = '\n';
+  let bw_sn = '\n';
   let tempFile = '';
-
 
   // create strings of the auth codes from the cart
   for(let i in cart.arturia_all){
