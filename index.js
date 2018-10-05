@@ -52,6 +52,7 @@ if(ISLIVE){
 
 const TESTMAIL = process.env.TESTMAIL; //when testing, don't send to customer, send to me
 const ADMINMAIL = process.env.ADMINMAIL;
+const WARNING_COUNT = 30;
 
 const dbName = 'heroku_z503k0d1';
 let dbBitwig;
@@ -244,9 +245,7 @@ async function update_db (req,rec_id,db_select){
 
   //update database
   await db_select.updateOne({ _id: rec_id }, { $set: { order_id: o_id, customer_email: email, customer_name: name } });
-  console.log('order_id added');
-  console.log('customer_email added');
-  console.log('customer_name added');
+  console.log('order_id, customer_email, and customer_name added');
 }
 
 async function sendTemplate(cart,emailto){
@@ -254,7 +253,6 @@ async function sendTemplate(cart,emailto){
   let art_uc = '<br>';
   let bw_sn =  '<br>';
   let tempFile = '';
-
 
   if(cart.arturia_all != -1){
     // create strings of the auth codes from the cart
@@ -322,17 +320,17 @@ async function sendemail() {
 async function check_counts(){
   let count = await dbBitwig.countDocuments({ order_id: '' });
   console.log('remaining bitwig:'+count);
-  if(count<10){
-    gmailOptions.subject='Bitwig Serial count is < 10';
-    gmailOptions.text='Bitwig Serial count is < 10';
+  if(count<WARNING_COUNT){
+    gmailOptions.subject = `Bitwig Serial count is < ${WARNING_COUNT}`;
+    gmailOptions.text = `Bitwig Serial count is < ${WARNING_COUNT}`;
     await sendemail();
   }
 
   count = await dbArturia.countDocuments({ order_id: '' });
   console.log('remaining arturia:'+count);
-  if(count<10){
-    gmailOptions.subject='Arturia Serial count is < 10';
-    gmailOptions.text='Arturia Serial count is < 10';
+  if(count<WARNING_COUNT){
+    gmailOptions.subject = `Arturia Serial count is < ${WARNING_COUNT}`;
+    gmailOptions.text = `Arturia Serial count is < ${WARNING_COUNT}`;
     await sendemail();
   }
 }
@@ -378,7 +376,7 @@ async function process_post(req, res) {
       dbBitwig = db.collection('bitwig-licenses');
       dbArturia = db.collection('arturia-licenses');
 
-      check_counts();
+      await check_counts();
       //Order came from Shopify, so we'll parse the info and email the customer relevant software licenses.
       await parseOrderInfo(req,res);
     });
