@@ -1,8 +1,12 @@
 //TO DO:
+// - integrate user's email as the "to" field
+// - add real serial numbers to database
+// - make email template adjustments
+// - document how this Works
+// - document how to add serials when needed.
+// - get mLab on a non-free account
+// - turn off sendOwl
 
-
-
-//figure out major failures - check for failures and email me if it happens
 
 //need to initialize the database in herokuapp
 //  put heroku in maintenace mode
