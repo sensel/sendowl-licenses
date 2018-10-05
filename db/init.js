@@ -5,6 +5,9 @@ const fs = require('fs');
 const path = require('path');
 const MongoClient = require('mongodb').MongoClient;
 
+const source_art='../test/arturia_test.txt';
+const source_bwig='../test/bitwig_test.txt';
+
 // Connection URL
 const url = process.env['MONGO_URI'];
 // Database Name
@@ -41,12 +44,11 @@ async function dbDo(doFunc) {
 async function testRead(db, collName) {
   const coll = db.collection(collName)
   let recs = await coll.find().toArray();
-  console.log(`Created ${collName}: ${recs.length}`);
+  console.log(`Total ${collName}: ${recs.length}`);
 }
 
 //create test db for arturia codes
 async function testInsertArturia(db) {
-  const source_art='../test/arturia_test.txt'
   const testPath = path.resolve(__dirname, source_art);
   const lines = fs.readFileSync(testPath, 'UTF-8').toString().split('\n');
   const collName = 'arturia-licenses';
@@ -74,7 +76,6 @@ async function testInsertArturia(db) {
 }
 
 async function testInsertBitwig(db) {
-  const source_bwig='../test/bitwig_test.txt'
   const testPath = path.resolve(__dirname, source_bwig);
   const lines = fs.readFileSync(testPath, 'UTF-8').toString().split('\n');
   const collName = 'bitwig-licenses';
