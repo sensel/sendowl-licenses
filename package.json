@@ -1,7 +1,7 @@
 {
   "name": "sendowl-licenses",
   "version": "1.0.0",
-  "description": "Using signed urls from SendOwl to manage license distribution",
+  "description": "Listens to Webhooks from Shopify orders to distribute software to customers",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
@@ -13,7 +13,6 @@
     "ejs": "2.6.1",
     "express": "4.15.2",
     "mongodb": "3.1.6",
-    "nedb": "1.8.0",
     "nodemailer": "4.6.8"
   },
   "keywords": [],
