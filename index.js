@@ -1,3 +1,5 @@
+//many thanks to Andrew Hay Kurtz https://github.com/ahk
+
 //TO DO:
 // - integrate user's email as the "to" field
 // - add real serial numbers to database
@@ -32,13 +34,24 @@ let fs = require('fs');
 
 let SERVER_PORT = process.env.PORT || 5000;
 //set in heroku https://devcenter.heroku.com/articles/config-vars using https://www.sendowl.com/settings/api_credentials
-let SOKEY = process.env.SO_KEY;
-let SOSECRET = process.env.SO_SECRET;
+const ISLIVE = process.env.ISLIVE;
 const SHOPSECRET = process.env.SHOPIFY_SHARED_SECRET;
-//only set locally
+//only set this with local .env, not with heroku config
 const ISLOCAL = process.env.LOCAL;
+//email to use, depending on LIVE status
 const GMAIL = process.env.GMAIL_USER;
 const GPASS = process.env.GMAIL_PASS;
+const SUSER = process.env.SUPPORT_USER;
+const SPASS = process.env.SUPPORT_PASS;
+let EMAILUSER = GMAIL;
+let EMAILPASS = GMAIL;
+if(ISLIVE){
+  EMAILUSER = SUSER;
+  EMAILPASS = SPASS;
+}
+
+const TESTMAIL = process.env.TESTMAIL; //when testing, don't send to customer, send to me
+const ADMINMAIL = process.env.ADMINMAIL;
 
 const dbName = 'heroku_z503k0d1';
 let dbBitwig;
@@ -80,9 +93,14 @@ async function dbDo(doFunc) {
   }
 }
 
-//get the order info from Shopify and grab all the interesting bits.
+//get the order info from Shopify and grab all the interesting bits
+//to figure out what, if any, serial numbers are needed.
 async function parseOrderInfo (req,res){
-  const email = req.body.contact_email;
+  let email = req.body.contact_email;
+  //if app isn't live, send to me, not customer.
+  if(!ISLIVE){
+    email = TESTMAIL;
+  }
   const order_num = req.body.name;
   const first_name = req.body.customer.first_name;
   const last_name = req.body.customer.last_name;
@@ -98,53 +116,57 @@ async function parseOrderInfo (req,res){
 
     console.log('++   Cart Item '+i+': '+title+' w/ '+variant+' qty: '+quantity);
     console.log(`current auth needs- art: ${auths_needed.arturia_all} , bw: ${auths_needed.bitwig_8ts}`)
-    if(title == 'The Sensel Morph with 1 Overlay'){
-      if(variant=='Music Production' || variant=='Piano' || variant=='Drum Pad' || variant=="Innovator's"){
-        //provide Arturia and Bitwig code
+
+    //using real products
+    if(ISLIVE){
+      if(title == 'The Sensel Morph with 1 Overlay'){
+        if(variant=='Music Production' || variant=='Piano' || variant=='Drum Pad' || variant=="Innovator's"){
+          //provide Arturia and Bitwig code
+          auths_needed.bitwig_8ts = auths_needed.bitwig_8ts + quantity;
+          auths_needed.arturia_all = auths_needed.arturia_all + quantity;
+        }else{
+          //provide only Arturia
+          auths_needed.arturia_all = auths_needed.arturia_all + quantity;
+        }
+      }
+      if(title == "Morph Music Maker's Bundle"){
+        //provide Arturia and Bitwig Codes
         auths_needed.bitwig_8ts = auths_needed.bitwig_8ts + quantity;
-        auths_needed.arturia_all = auths_needed.arturia_all + quantity;
-      }else{
-        //provide only Arturia
         auths_needed.arturia_all = auths_needed.arturia_all + quantity;
       }
     }
-    if(title == "Morph Music Maker's Bundle"){
-      //provide Arturia and Bitwig Codes
-      auths_needed.bitwig_8ts = auths_needed.bitwig_8ts + quantity;
-      auths_needed.arturia_all = auths_needed.arturia_all + quantity;
-    }
+
     //using test products:
-    if(title == 'SenselTest'){
-      console.log('SENSEL TEST PRODUCT');
-      if(variant=="Innovator's"){
-        console.log('INNOVATOR OVERLAY VARIANT');
-        auths_needed.arturia_all = auths_needed.arturia_all + quantity;
-      }
-      if(variant=="Piano"){
-        console.log('PIANO VARIANT');
-        auths_needed.bitwig_8ts = auths_needed.bitwig_8ts + quantity;
-        auths_needed.arturia_all = auths_needed.arturia_all + quantity;
+    if(!ISLIVE){
+      if(title == 'SenselTest'){
+        console.log('SENSEL TEST PRODUCT');
+        if(variant=="Innovator's"){
+          console.log('INNOVATOR OVERLAY VARIANT');
+          auths_needed.arturia_all = auths_needed.arturia_all + quantity;
+        }
+        if(variant=="Piano"){
+          console.log('PIANO VARIANT');
+          auths_needed.bitwig_8ts = auths_needed.bitwig_8ts + quantity;
+          auths_needed.arturia_all = auths_needed.arturia_all + quantity;
+        }
       }
     }
-  }
+  }//end order scan
   console.log(`-----done scanning order. need ${auths_needed.arturia_all} Arturia licenses and ${auths_needed.bitwig_8ts} Bitwig licenses----`);
+
   //now go through db and get the auth keys as needed
   if(auths_needed.arturia_all>0 || auths_needed.bitwig_8ts>0){
     let auth_cart = await soft_auths(req,auths_needed);
-    //email the contents of cart to customer
-    await sendTemplate(auth_cart);
+    // then email the "cart" of authorizations to customer
+    await sendTemplate(auth_cart,email);
   }else{
     console.log('no Serials needed for this order');
   }
-
 }
 
-async function noauths_avail(v){
-  //email peter@sensel.com and mark@sensel.com
-}
-
-//soft_auths is for POST requests direct from Shopify webhook
-//lots of nested functions due relying on callbacks. I'm sure there's a nice way to do this, but this works.
+//soft_auths looks for empty order_id fields to find available serial numbers
+//returns an object with arrays of serials/authorizations for different titles
+//if there are no serials left in the database, instead of arrays, we get -1 returned
 async function soft_auths(req,auth){
   console.log(`>> getting authorizations for Arturia: ${auth.arturia_all} and Bitwig: ${auth.bitwig_8ts} <<`);
   // auth.bitwig_8ts is number of bitwig licenses we need to deliver
@@ -154,6 +176,7 @@ async function soft_auths(req,auth){
   // then update entry with the new info
   //returns an array of license info. Entry 0 is Arturia, entry 1 is Bitwig.
 
+  //find Arturia auths
   let art_cart = [];
   let ids = [];
   let index = 0
@@ -201,12 +224,16 @@ async function soft_auths(req,auth){
   }else{
     console.log('No Bitwig auths needed')
   }
+
   cart.arturia_all = art_cart;
   cart.bitwig_8ts = bw_cart;
   console.log(`>> lengths: ${cart.arturia_all.length} , ${cart.bitwig_8ts.length}`);
   return cart;
 }
 
+//when we grab a serial number from the database
+//we update the database with customer info and order_id
+//which essentially marks it as used.
 async function update_db (req,rec_id,db_select){
   //abbreviate!
   const email = req.body.contact_email;
@@ -222,12 +249,12 @@ async function update_db (req,rec_id,db_select){
   console.log('customer_name added');
 }
 
-//need to add an email "to"
-async function sendTemplate(cart){
+async function sendTemplate(cart,emailto){
   let art_sn = '<br>';
   let art_uc = '<br>';
   let bw_sn =  '<br>';
   let tempFile = '';
+
 
   if(cart.arturia_all != -1){
     // create strings of the auth codes from the cart
@@ -264,6 +291,7 @@ async function sendTemplate(cart){
     if (err) {
         console.log(err);
     } else {
+        gmailOptions.to=emailto;
         gmailOptions.subject='Sensel - Your Free Software';
         gmailOptions.html = data;
         console.log("======================>");
@@ -279,7 +307,7 @@ async function sendTemplate(cart){
 }
 
 async function sendemail() {
-  gmailOptions.to='peter@sensel.com';
+  gmailOptions.to=ADMINMAIL;
   gmailOptions.html = '';
   gmail_transporter.sendMail(gmailOptions, function (err, info) {
       if (err) {
@@ -314,17 +342,17 @@ async function check_counts(){
 const gmail_transporter = nodemailer.createTransport({
     service: 'Gmail',
     auth: {
-        user: GMAIL,
-        pass: GPASS
+        user: EMAILUSER,
+        pass: EMAILPASS
     }
 });
 
 // setup email data
 const gmailOptions = {
     from: '"Sensel Shop" <peter@sensel.com>', // sender address
-    to: 'p@nbor.us, mark@sensel.com, xiaoye@sensel.com', // list of receivers
+    to: 'someone@somewhere.com', // list of receivers
     subject: 'Sensel - Your Free Software', // Subject line
-    text: 'Hello world', // plain text body
+    text: 'Serial number authorizations', // plain text body
 };
 
 async function process_post(req, res) {
