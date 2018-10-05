@@ -1,20 +1,10 @@
 //many thanks to Andrew Hay Kurtz https://github.com/ahk
 
 //TO DO:
-// - integrate user's email as the "to" field
 // - add real serial numbers to database
 // - make email template adjustments
-// - document how this Works
-// - document how to add serials when needed.
 // - get mLab on a non-free account
 // - turn off sendOwl
-
-
-//need to initialize the database in herokuapp
-//  put heroku in maintenace mode
-//  then run the init db using the heroku command line tool (heroku run, exec, or task)
-//    --heroku run 'node db/init.js' -a polar-sands-88575
-//  then switch from maintenance to live.
 
 // app is at https://polar-sands-88575.herokuapp.com/ https://git.heroku.com/polar-sands-88575.git
 
