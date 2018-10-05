@@ -1,3 +1,6 @@
+//updates database with fake bitwig and arturia licenses for testing
+//deprecated - use add_to_db
+
 'use strict';
 
 require('dotenv').config();
@@ -5,8 +8,9 @@ const fs = require('fs');
 const path = require('path');
 const MongoClient = require('mongodb').MongoClient;
 
-const source_art='../test/arturia_test.txt';
-const source_bwig='../test/bitwig_test.txt';
+let source_art='../license sources/arturia_test.txt';
+let source_bwig='../license sources/bitwig_test.txt';
+
 
 // Connection URL
 const url = process.env['MONGO_URI'];
