@@ -25,6 +25,7 @@ let fs = require('fs');
 let SERVER_PORT = process.env.PORT || 5000;
 //set in heroku https://devcenter.heroku.com/articles/config-vars using https://www.sendowl.com/settings/api_credentials
 const ISLIVE = process.env.ISLIVE;
+const RUNTEST = process.env.RUNTEST;
 const SHOPSECRET = process.env.SHOPIFY_SHARED_SECRET;
 //only set this with local .env, not with heroku config
 const ISLOCAL = process.env.LOCAL;
@@ -50,11 +51,26 @@ let dbArturia;
 
 //read a json file that is the same format as a post from Shopify webhook
 // let testOrder = JSON.parse(fs.readFileSync('testorder.json', 'utf8'));
-let testOrder;
-fs.readFile('test_order.json', 'utf8', function (err, data) {
-  if (err) throw err;
+
+async function readTest(file) {
+  return new Promise((resolve, reject) => {
+    fs.readFile('test_order.json', 'utf8', (err, data) => {
+      if (err) reject(err);
+      else resolve(data);
+    });
+  });
+}
+
+async function runTestOrder(){
+  let res = {};
+  res['sendStatus'] = function(){console.log('---sendStatus---')};
+  let request = {};
+  let testOrder;
+  let data=await readTest();
   testOrder = JSON.parse(data);
-});
+  request['body'] = testOrder;
+  process_post(request,res);
+}
 
 // run given doFunc inside a database transaction
 async function dbDo(doFunc) {
@@ -105,10 +121,10 @@ async function parseOrderInfo (req,res){
     const variant = req.body.line_items[i]['variant_title'];
     const quantity = req.body.line_items[i]['quantity'];
 
-    console.log('**   Cart Item '+i+': '+title+' w/ '+variant+' qty: '+quantity);
+    console.log('**   Cart Item '+i+': '+title+' w/ '+variant+' qty: '+quantity+' isLive? '+ISLIVE);
 
     //using real products
-    if(ISLIVE){
+    if(ISLIVE==1){
       if(title == 'The Sensel Morph with 1 Overlay'){
         if(variant=='Music Production' || variant=='Piano' || variant=='Drum Pad' || variant=="Innovator's"){
           //provide Arturia and Bitwig code
@@ -126,8 +142,9 @@ async function parseOrderInfo (req,res){
       }
     }
 
-    //using test products:
-    if(!ISLIVE){
+    if(ISLIVE==0){
+      //using test products:
+      console.log(`## not live ${title}, ${variant}, ${quantity}`)
       if(title == 'SenselTest'){
         console.log('SENSEL TEST PRODUCT');
         if(variant=="Innovator's"){
@@ -312,7 +329,7 @@ async function check_counts(){
   if(count<WARNING_COUNT){
     gmailOptions.subject = `Bitwig Serial count is < ${WARNING_COUNT}`;
     gmailOptions.text = `Bitwig Serial count is < ${WARNING_COUNT}`;
-    await sendemail();
+    if(!RUNTEST) await sendemail();
   }
 
   count = await dbArturia.countDocuments({ order_id: '' });
@@ -320,7 +337,7 @@ async function check_counts(){
   if(count<WARNING_COUNT){
     gmailOptions.subject = `Arturia Serial count is < ${WARNING_COUNT}`;
     gmailOptions.text = `Arturia Serial count is < ${WARNING_COUNT}`;
-    await sendemail();
+    if(!RUNTEST) await sendemail();
   }
 }
 
@@ -344,17 +361,22 @@ const gmailOptions = {
 
 async function process_post(req, res) {
   console.log('Incoming order!...');
-  // We'll compare the hmac to our own hash
-  const hmac = req.get('X-Shopify-Hmac-Sha256');
-  console.log(`signature from order post: ${hmac}`);
-  // Use raw-body to get the body (buffer)
-  const body = JSON.stringify(req.body);
-  // Create a hash using the body and our key
-  const hash = crypto
-    .createHmac('sha256', SHOPSECRET)
-    .update(req.rawbody, 'utf8', 'hex')
-    .digest('base64');
-
+  let hash = 0;
+  let hmac = 1;
+  if(!RUNTEST){
+    // We'll compare the hmac to our own hash
+    hmac = req.get('X-Shopify-Hmac-Sha256');
+    console.log(`signature from order post: ${hmac}`);
+    // Use raw-body to get the body (buffer)
+    const body = JSON.stringify(req.body);
+    // Create a hash using the body and our key
+    hash = crypto
+      .createHmac('sha256', SHOPSECRET)
+      .update(req.rawbody, 'utf8', 'hex')
+      .digest('base64');
+  }else{
+    hash = 1;
+  }
   // Compare our hash to Shopify's hash
   if (hash === hmac) {
     // It's a match! All good
@@ -414,3 +436,4 @@ async function main() {
     .listen(SERVER_PORT, () => console.log(`We're listening on ${ SERVER_PORT }`));
 }
 main();
+if(RUNTEST) runTestOrder();
