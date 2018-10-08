@@ -51,7 +51,7 @@ let dbArturia;
 //read a json file that is the same format as a post from Shopify webhook
 // let testOrder = JSON.parse(fs.readFileSync('testorder.json', 'utf8'));
 let testOrder;
-fs.readFile('testorder.json', 'utf8', function (err, data) {
+fs.readFile('test_order.json', 'utf8', function (err, data) {
   if (err) throw err;
   testOrder = JSON.parse(data);
 });
