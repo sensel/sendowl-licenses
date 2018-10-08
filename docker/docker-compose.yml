@@ -1,0 +1,26 @@
+# Use root/example as user/password credentials
+version: '2'
+
+services:
+  node:
+    image: node:10
+    working_dir: /usr/src/app
+    entrypoint: "npm start"
+    volumes:
+      - "../:/usr/src/app"
+    ports:
+      - "8080:5000"
+    depends_on:
+      - mongo
+
+  mongo:
+    image: mongo
+    restart: always
+    volumes:
+      - "mongo_data:/data/db"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: "mongo-password"
+
+volumes:
+  mongo_data:
