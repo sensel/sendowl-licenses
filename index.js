@@ -70,7 +70,7 @@ async function dbDo(doFunc) {
   }
 
   if (client) {
-    console.log('client opened')
+    console.log('database client opened')
     try {
       await doFunc(db);
     } catch (err) {
@@ -80,7 +80,7 @@ async function dbDo(doFunc) {
     client.close();
   }
   else {
-    console.log('failed to open client')
+    console.log('failed to open database client')
   }
 }
 
@@ -105,8 +105,7 @@ async function parseOrderInfo (req,res){
     const variant = req.body.line_items[i]['variant_title'];
     const quantity = req.body.line_items[i]['quantity'];
 
-    console.log('++   Cart Item '+i+': '+title+' w/ '+variant+' qty: '+quantity);
-    console.log(`current auth needs- art: ${auths_needed.arturia_all} , bw: ${auths_needed.bitwig_8ts}`)
+    console.log('**   Cart Item '+i+': '+title+' w/ '+variant+' qty: '+quantity);
 
     //using real products
     if(ISLIVE){
@@ -132,11 +131,11 @@ async function parseOrderInfo (req,res){
       if(title == 'SenselTest'){
         console.log('SENSEL TEST PRODUCT');
         if(variant=="Innovator's"){
-          console.log('INNOVATOR OVERLAY VARIANT');
+          console.log('test: INNOVATOR OVERLAY VARIANT');
           auths_needed.arturia_all = auths_needed.arturia_all + quantity;
         }
         if(variant=="Piano"){
-          console.log('PIANO VARIANT');
+          console.log('test: PIANO OVERLAY VARIANT');
           auths_needed.bitwig_8ts = auths_needed.bitwig_8ts + quantity;
           auths_needed.arturia_all = auths_needed.arturia_all + quantity;
         }
@@ -176,7 +175,7 @@ async function soft_auths(req,auth){
       art_cart[index] = [doc.serial,doc.unlock_code];
       ids[index] = doc._id;
       index++;
-      console.log(`ART SERIALS: ${doc.serial}`);
+      console.log(`ARTURIA SERIALS: ${doc.serial}, ${doc.unlock_code}`);
     }
   console.log(`check lengths- cart: ${art_cart.length} vs needed ${auth.arturia_all}`)
   if(art_cart.length===auth.arturia_all){
@@ -344,12 +343,10 @@ const gmailOptions = {
 };
 
 async function process_post(req, res) {
-  console.log('We got an order!...');
-
-  console.log(`--items in order: ${req.body.line_items}`)
+  console.log('Incoming order!...');
   // We'll compare the hmac to our own hash
   const hmac = req.get('X-Shopify-Hmac-Sha256');
-  console.log(`hmac: ${hmac}`);
+  console.log(`signature from order post: ${hmac}`);
   // Use raw-body to get the body (buffer)
   const body = JSON.stringify(req.body);
   // Create a hash using the body and our key
@@ -361,7 +358,7 @@ async function process_post(req, res) {
   // Compare our hash to Shopify's hash
   if (hash === hmac) {
     // It's a match! All good
-    console.log('Authorized Order, it came from Shopify!');
+    console.log('Authorized Order from Shopify!');
     await dbDo(async (db) => {
       dbBitwig = db.collection('bitwig-licenses');
       dbArturia = db.collection('arturia-licenses');
@@ -405,7 +402,7 @@ async function main() {
     .use(bodyParser.urlencoded({ extended: true }))
 
     .get('/', function(req, res) {
-      res.send('SENSEL').status(200);
+      res.send('<a href="http://sensel.com">SENSEL</a>').status(200);
     })
     .post('/', async function(req, res) {
       process_post(req,res);
