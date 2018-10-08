@@ -54,7 +54,7 @@ let dbArturia;
 
 async function readTest(file) {
   return new Promise((resolve, reject) => {
-    fs.readFile('test_order.json', 'utf8', (err, data) => {
+    fs.readFile('testorders/test_order_morphbundle.json', 'utf8', (err, data) => {
       if (err) reject(err);
       else resolve(data);
     });
