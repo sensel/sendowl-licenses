@@ -49,7 +49,7 @@ if(ISLIVE){
 const TESTMAIL = process.env.TESTMAIL; //when testing, don't send to customer, send to me
 const ADMINMAIL = process.env.ADMINMAIL;
 //how many serials should be have left before we send out warning emails to admin?
-const WARNING_COUNT = 30;
+const WARNING_COUNT = 5;
 
 const dbName = 'heroku_z503k0d1';
 //just declare these variables, we'll fill them later
