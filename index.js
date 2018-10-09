@@ -112,8 +112,8 @@ async function parseOrderInfo (req,res){
 
     console.log('**   Cart Item '+i+': '+title+' w/ '+variant+' qty: '+quantity+' isLive? '+ISLIVE+' from: '+req.body.contact_email);
 
-    //using real products
-    if(ISLIVE==1){
+    //using real products or is a test POST from shopify.
+    if(ISLIVE==1 || req.body.contact_email==='jon@doe.ca'){
       if(title == 'The Sensel Morph with 1 Overlay'){
         if(variant=='Music Production' || variant=='Piano' || variant=='Drum Pad' || variant=="Innovator's"){
           //provide Arturia and Bitwig code
