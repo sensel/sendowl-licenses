@@ -2,9 +2,10 @@
 
 //TO DO:
 // - add real serial numbers to database
-// - make email template adjustments
 // - get mLab on a non-free account
+// - set ISLIVE to 1
 // - turn off sendOwl
+
 
 // app is at https://polar-sands-88575.herokuapp.com/ https://git.heroku.com/polar-sands-88575.git
 
@@ -41,7 +42,7 @@ const SUSER = process.env.SUPPORT_USER;
 const SPASS = process.env.SUPPORT_PASS;
 let EMAILUSER = GMAIL;
 let EMAILPASS = GMAIL;
-if(ISLIVE){
+if(ISLIVE==1){
   EMAILUSER = SUSER;
   EMAILPASS = SPASS;
 }
@@ -92,7 +93,7 @@ async function dbDo(doFunc) {
 async function parseOrderInfo (req,res){
   let email = req.body.contact_email;
   //if app isn't live, send to me, not customer.
-  if(!ISLIVE){
+  if(ISLIVE==0){
     email = TESTMAIL;
   }
   const order_num = req.body.name;
@@ -316,7 +317,7 @@ async function check_counts(){
   if(count<WARNING_COUNT){
     gmailOptions.subject = `Bitwig Serial count is < ${WARNING_COUNT}`;
     gmailOptions.text = `Bitwig Serial count is < ${WARNING_COUNT}`;
-    if(!RUNTEST) await sendemail();
+    if(RUNTEST==0) await sendemail();
   }
 
   count = await dbArturia.countDocuments({ order_id: '' });
@@ -324,7 +325,7 @@ async function check_counts(){
   if(count<WARNING_COUNT){
     gmailOptions.subject = `Arturia Serial count is < ${WARNING_COUNT}`;
     gmailOptions.text = `Arturia Serial count is < ${WARNING_COUNT}`;
-    if(!RUNTEST) await sendemail();
+    if(RUNTEST==0) await sendemail();
   }
 }
 
@@ -350,7 +351,7 @@ async function process_post(req, res) {
   console.log('Incoming order!...');
   let hash = 0;
   let hmac = 1;
-  if(!RUNTEST){
+  if(RUNTEST==0){
     // We'll compare the hmac to our own hash
     hmac = req.get('X-Shopify-Hmac-Sha256');
     console.log(`signature from order post: ${hmac}`);
@@ -445,4 +446,4 @@ async function runTestOrder(){
   process_post(request,res);
 }
 
-if(RUNTEST) runTestOrder();
+if(RUNTEST==1) runTestOrder();
