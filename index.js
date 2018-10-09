@@ -22,10 +22,15 @@ let ejs = require('ejs');
 let getRawBody = require('raw-body')
 let fs = require('fs');
 
+//environment VARS set in heroku https://devcenter.heroku.com/articles/config-vars or in local .env file
+
 let SERVER_PORT = process.env.PORT || 5000;
-//set in heroku https://devcenter.heroku.com/articles/config-vars using https://www.sendowl.com/settings/api_credentials
+
+//is the app listening to real orders from customers?
 const ISLIVE = process.env.ISLIVE;
+//should we use order data stored in JSON files instead of listening to shopify?
 const RUNTEST = process.env.RUNTEST;
+//for authorizing the POST as coming from Shopify servers:
 const SHOPSECRET = process.env.SHOPIFY_SHARED_SECRET;
 //only set this with local .env, not with heroku config
 const ISLOCAL = process.env.LOCAL;
@@ -43,34 +48,16 @@ if(ISLIVE){
 
 const TESTMAIL = process.env.TESTMAIL; //when testing, don't send to customer, send to me
 const ADMINMAIL = process.env.ADMINMAIL;
+//how many serials should be have left before we send out warning emails to admin?
 const WARNING_COUNT = 30;
 
 const dbName = 'heroku_z503k0d1';
+//just declare these variables, we'll fill them later
 let dbBitwig;
 let dbArturia;
 
 //read a json file that is the same format as a post from Shopify webhook
 // let testOrder = JSON.parse(fs.readFileSync('testorder.json', 'utf8'));
-
-async function readTest(file) {
-  return new Promise((resolve, reject) => {
-    fs.readFile('testorders/test_order_morphbundle.json', 'utf8', (err, data) => {
-      if (err) reject(err);
-      else resolve(data);
-    });
-  });
-}
-
-async function runTestOrder(){
-  let res = {};
-  res['sendStatus'] = function(){console.log('---sendStatus---')};
-  let request = {};
-  let testOrder;
-  let data=await readTest();
-  testOrder = JSON.parse(data);
-  request['body'] = testOrder;
-  process_post(request,res);
-}
 
 // run given doFunc inside a database transaction
 async function dbDo(doFunc) {
@@ -436,4 +423,26 @@ async function main() {
     .listen(SERVER_PORT, () => console.log(`We're listening on ${ SERVER_PORT }`));
 }
 main();
+
+//for testing with JSON files instead of POST from Shopify
+async function readTest(file) {
+  return new Promise((resolve, reject) => {
+    fs.readFile('testorders/test_order_morph.json', 'utf8', (err, data) => {
+      if (err) reject(err);
+      else resolve(data);
+    });
+  });
+}
+
+async function runTestOrder(){
+  let res = {};
+  res['sendStatus'] = function(){console.log('---sendStatus---')};
+  let request = {};
+  let testOrder;
+  let data=await readTest();
+  testOrder = JSON.parse(data);
+  request['body'] = testOrder;
+  process_post(request,res);
+}
+
 if(RUNTEST) runTestOrder();
