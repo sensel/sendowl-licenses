@@ -286,7 +286,7 @@ async function sendTemplate(cart,emailto){
         gmailOptions.to = emailto;
         gmailOptions.subject='Your Free Music Software from Sensel';
         gmailOptions.html = data;
-        console.log("======================>");
+        console.log(`email to ===> ${emailto} from ${EMAILUSER}`);
         gmail_transporter.sendMail(gmailOptions, function (err, info) {
             if (err) {
                 console.log(err);
