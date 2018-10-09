@@ -42,8 +42,8 @@ const GMAIL = process.env.GMAIL_USER; //me@sensel
 const GPASS = process.env.GMAIL_PASS;
 const SUSER = process.env.SUPPORT_USER; //support@
 const SPASS = process.env.SUPPORT_PASS;
-let EMAILUSER = NMAIL;
-let EMAILPASS = NPASS;
+let EMAILUSER = GMAIL;  
+let EMAILPASS = GPASS;
 if(ISLIVE==1){
   EMAILUSER = SUSER;
   EMAILPASS = SPASS;
