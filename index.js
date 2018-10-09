@@ -341,7 +341,7 @@ const gmail_transporter = nodemailer.createTransport({
 
 // setup email data
 const gmailOptions = {
-    from: '"Sensel Shop" <'+EMAILUSER+'>', // sender address
+    from: EMAILUSER, // sender address
     to: 'someone@somewhere.com', // list of receivers
     subject: 'Your Free Music Software from Sensel', // Subject line
     text: 'Serial number authorizations', // plain text body
