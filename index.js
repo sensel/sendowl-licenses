@@ -36,9 +36,9 @@ const SHOPSECRET = process.env.SHOPIFY_SHARED_SECRET;
 //only set this with local .env, not with heroku config
 const ISLOCAL = process.env.LOCAL;
 //email to use, depending on LIVE status
-const GMAIL = process.env.GMAIL_USER;
+const GMAIL = process.env.GMAIL_USER; //me
 const GPASS = process.env.GMAIL_PASS;
-const SUSER = process.env.SUPPORT_USER;
+const SUSER = process.env.SUPPORT_USER; //support@
 const SPASS = process.env.SUPPORT_PASS;
 let EMAILUSER = GMAIL;
 let EMAILPASS = GMAIL;
@@ -283,8 +283,8 @@ async function sendTemplate(cart,emailto){
     if (err) {
         console.log(err);
     } else {
-        gmailOptions.to=emailto;
-        gmailOptions.subject='Your Free Music Software from Sense';
+        gmailOptions.to = emailto;
+        gmailOptions.subject='Your Free Music Software from Sensel';
         gmailOptions.html = data;
         console.log("======================>");
         gmail_transporter.sendMail(gmailOptions, function (err, info) {
@@ -341,9 +341,9 @@ const gmail_transporter = nodemailer.createTransport({
 
 // setup email data
 const gmailOptions = {
-    from: '"Sensel Shop" <peter@sensel.com>', // sender address
+    from: '"Sensel Shop" <'+EMAILUSER+'>', // sender address
     to: 'someone@somewhere.com', // list of receivers
-    subject: 'Sensel - Your Free Software', // Subject line
+    subject: 'Your Free Music Software from Sensel', // Subject line
     text: 'Serial number authorizations', // plain text body
 };
 
