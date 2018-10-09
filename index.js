@@ -36,12 +36,14 @@ const SHOPSECRET = process.env.SHOPIFY_SHARED_SECRET;
 //only set this with local .env, not with heroku config
 const ISLOCAL = process.env.LOCAL;
 //email to use, depending on LIVE status
-const GMAIL = process.env.GMAIL_USER; //me
+const NMAIL = process.env.EMAIL_USER; //nbor
+const NPASS = process.env.EMAIL_PASS;
+const GMAIL = process.env.GMAIL_USER; //me@sensel
 const GPASS = process.env.GMAIL_PASS;
 const SUSER = process.env.SUPPORT_USER; //support@
 const SPASS = process.env.SUPPORT_PASS;
-let EMAILUSER = GMAIL;
-let EMAILPASS = GMAIL;
+let EMAILUSER = NMAIL;
+let EMAILPASS = NPASS;
 if(ISLIVE==1){
   EMAILUSER = SUSER;
   EMAILPASS = SPASS;
