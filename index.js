@@ -283,7 +283,7 @@ async function sendTemplate(cart,emailto){
         console.log(err);
     } else {
         gmailOptions.to=emailto;
-        gmailOptions.subject='Sensel - Your Free Software';
+        gmailOptions.subject='Your Free Music Software from Sense';
         gmailOptions.html = data;
         console.log("======================>");
         gmail_transporter.sendMail(gmailOptions, function (err, info) {
