@@ -58,9 +58,6 @@ const dbName = 'heroku_z503k0d1';
 let dbBitwig;
 let dbArturia;
 
-//read a json file that is the same format as a post from Shopify webhook
-// let testOrder = JSON.parse(fs.readFileSync('testorder.json', 'utf8'));
-
 // run given doFunc inside a database transaction
 async function dbDo(doFunc) {
   let client;
@@ -102,7 +99,6 @@ async function parseOrderInfo (req,res){
   const last_name = req.body.customer.last_name;
   //when order is scanned, we store counts of auths to send out
   let auths_needed = {'bitwig_8ts':0, 'arturia_all':0};
-
   //scan thru order and count the number of auths we'll need.
   //then, after scanning pass thru a function that gets all the auths
   for (let i in req.body.line_items){
@@ -110,7 +106,7 @@ async function parseOrderInfo (req,res){
     const variant = req.body.line_items[i]['variant_title'];
     const quantity = req.body.line_items[i]['quantity'];
 
-    console.log('**   Cart Item '+i+': '+title+' w/ '+variant+' qty: '+quantity+' isLive? '+ISLIVE+' from: '+req.body.contact_email);
+    console.log('** Order# '+req.body.name+'Cart Item '+i+': '+title+' w/ '+variant+' qty: '+quantity+ 'from: '+req.body.contact_email);
 
     //using real products or is a test POST from shopify.
     if(ISLIVE==1 || req.body.contact_email==='jon@doe.ca'){
