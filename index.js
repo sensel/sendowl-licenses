@@ -291,7 +291,9 @@ async function sendTemplate(cart,emailto){
         console.log(`email to ===> ${emailto} from ${EMAILUSER}`);
         gmail_transporter.sendMail(gmailOptions, function (err, info) {
             if (err) {
+                console.log('<--- sendTemplate() error');
                 console.log(err);
+                console.log('sendTemplate() error --->');
             } else {
                 console.log('Message sent: ' + info.response);
             }
