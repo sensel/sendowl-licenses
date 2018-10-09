@@ -61,6 +61,20 @@ async function dbDo(doFunc) {
   }
 }
 
+async function readCodeFile(source) {
+  return new Promise((resolve, reject) => {
+    fs.readFile(source, 'utf8', (err, data) => {
+      if (err){
+        console.log('<-- file read error')
+        console.log(err);
+        reject(err);
+        console.log('file read error --->')
+      }
+      else resolve(data);
+    });
+  });
+}
+
 async function testRead(db, collName) {
   const coll = db.collection(collName)
   let recs = await coll.find().toArray();
@@ -69,7 +83,8 @@ async function testRead(db, collName) {
 
 async function addToBase(db,product) {
   const sourcePath = path.resolve(__dirname, source);
-  const lines = fs.readFileSync(sourcePath, 'UTF-8').toString().split('\n');
+  const sourceFile = await readCodeFile(sourcePath);
+  const lines = sourceFile.toString().split('\n');
   const collName = product+'-licenses';
   const coll = db.collection(collName);
   let counter = 0;
@@ -91,6 +106,7 @@ async function addToBase(db,product) {
   //arturia has an unlock code AND a serial number for its auth.
   if(product==='arturia'){
     for (let line of lines) {
+      console.log(`lines ${lines[0]}`)
       const snum = line.split(',')[0];
       const unlock = line.split(',')[1];
       await coll.insertOne({
