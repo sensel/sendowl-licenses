@@ -36,13 +36,12 @@ const SHOPSECRET = process.env.SHOPIFY_SHARED_SECRET;
 //only set this with local .env, not with heroku config
 const ISLOCAL = process.env.LOCAL;
 //email to use, depending on LIVE status
-const NMAIL = process.env.EMAIL_USER; //nbor
-const NPASS = process.env.EMAIL_PASS;
+
 const GMAIL = process.env.GMAIL_USER; //me@sensel
 const GPASS = process.env.GMAIL_PASS;
 const SUSER = process.env.SUPPORT_USER; //support@
 const SPASS = process.env.SUPPORT_PASS;
-let EMAILUSER = GMAIL;  
+let EMAILUSER = GMAIL;
 let EMAILPASS = GPASS;
 if(ISLIVE==1){
   EMAILUSER = SUSER;
@@ -111,7 +110,7 @@ async function parseOrderInfo (req,res){
     const variant = req.body.line_items[i]['variant_title'];
     const quantity = req.body.line_items[i]['quantity'];
 
-    console.log('**   Cart Item '+i+': '+title+' w/ '+variant+' qty: '+quantity+' isLive? '+ISLIVE);
+    console.log('**   Cart Item '+i+': '+title+' w/ '+variant+' qty: '+quantity+' isLive? '+ISLIVE+' from: '+req.body.contact_email);
 
     //using real products
     if(ISLIVE==1){
