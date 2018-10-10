@@ -61,6 +61,10 @@ if(ISLIVE==1){
   EMAILUSER = SUSER;
   EMAILPASS = SPASS;
 }
+//temporary
+EMAILUSER = SUSER;
+EMAILPASS = SPASS;
+
 
 const TESTMAIL = process.env.TESTMAIL; //when testing, don't send to customer, send to me
 const ADMINMAIL = process.env.ADMINMAIL; //for warnings
