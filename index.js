@@ -1,29 +1,40 @@
 //many thanks to Andrew Hay Kurtz https://github.com/ahk
 
 //TO DO:
+// - destroy test database
 // - add real serial numbers to database
 // - get mLab on a non-free account
 // - set ISLIVE to 1
 // - turn off sendOwl
 
 
-// app is at https://polar-sands-88575.herokuapp.com/ https://git.heroku.com/polar-sands-88575.git
+// app is at https://polar-sands-88575.herokuapp.com/
+//https://git.heroku.com/polar-sands-88575.git
 
 'use strict';
-
+//for local environment variables in a '.env' file. not needed in heroku cloud
 require('dotenv').config();
+//for calculating signature from Shopify
 const crypto = require('crypto');
+//used for calculating signature to verify Shopify POST
+let getRawBody = require('raw-body')
+//makes sending email easy
 const nodemailer = require('nodemailer');
+//the server
 const express = require('express');
 //handle POST from shopify webhook
 const bodyParser = require('body-parser');
+//for making sure filepath is correct
 const path = require('path');
-const MongoClient = require('mongodb').MongoClient;
-let ejs = require('ejs');
-let getRawBody = require('raw-body')
+//for reading files to test from
 let fs = require('fs');
+//database hooks
+const MongoClient = require('mongodb').MongoClient;
+//used for email templates
+let ejs = require('ejs');
 
-//environment VARS set in heroku https://devcenter.heroku.com/articles/config-vars or in local .env file
+//environment VARS set in heroku https://devcenter.heroku.com/articles/config-vars
+//or in local .env file
 
 let SERVER_PORT = process.env.PORT || 5000;
 
@@ -41,15 +52,18 @@ const GMAIL = process.env.GMAIL_USER; //me@sensel
 const GPASS = process.env.GMAIL_PASS;
 const SUSER = process.env.SUPPORT_USER; //support@
 const SPASS = process.env.SUPPORT_PASS;
+const NMAIL = process.env.EMAIL_USER; //alt email
+const NPASS = process.env.EMAIL_PASS;
 let EMAILUSER = GMAIL;
 let EMAILPASS = GPASS;
+//if this is live, we'll use the support@ email
 if(ISLIVE==1){
   EMAILUSER = SUSER;
   EMAILPASS = SPASS;
 }
 
 const TESTMAIL = process.env.TESTMAIL; //when testing, don't send to customer, send to me
-const ADMINMAIL = process.env.ADMINMAIL;
+const ADMINMAIL = process.env.ADMINMAIL; //for warnings
 //how many serials should be have left before we send out warning emails to admin?
 const WARNING_COUNT = 5;
 
@@ -288,6 +302,8 @@ async function sendTemplate(cart,emailto){
             if (err) {
                 console.log('<--- sendTemplate() error');
                 console.log(err);
+                //if there's a problem sending the email to the user, warn me at a different email
+                await sendAltMail();
                 console.log('sendTemplate() error --->');
             } else {
                 console.log('Message sent: ' + info.response);
@@ -297,17 +313,32 @@ async function sendTemplate(cart,emailto){
   });
 }
 
-async function sendemail() {
+async function sendAdminMail() {
   gmailOptions.to=ADMINMAIL;
   gmailOptions.html = '';
   gmail_transporter.sendMail(gmailOptions, function (err, info) {
       if (err) {
-          console.log(err);
+            console.log('<--- sendAdminMail() error');
+            console.log(err);
+            //if there's a problem sending the email to the user, warn me at a different email
+            await sendAltMail();
+            console.log('sendAdminMail() error --->');
       } else {
           console.log('Message sent: ' + info.response);
       }
   });
   return 'email sent';
+}
+
+async function sendAltMail() {
+  nmail_transporter.sendMail(nmailOptions, function (err, info) {
+      if (err) {
+          console.log(err);
+      } else {
+          console.log('Alt Email Message sent: ' + info.response);
+      }
+  });
+  return 'alternate email sent';
 }
 
 async function check_counts(){
@@ -316,7 +347,7 @@ async function check_counts(){
   if(count<WARNING_COUNT){
     gmailOptions.subject = `Bitwig Serial count is < ${WARNING_COUNT}`;
     gmailOptions.text = `Bitwig Serial count is < ${WARNING_COUNT}`;
-    if(RUNTEST==0) await sendemail();
+    if(RUNTEST==0) await sendAdminMail();
   }
 
   count = await dbArturia.countDocuments({ order_id: '' });
@@ -324,7 +355,7 @@ async function check_counts(){
   if(count<WARNING_COUNT){
     gmailOptions.subject = `Arturia Serial count is < ${WARNING_COUNT}`;
     gmailOptions.text = `Arturia Serial count is < ${WARNING_COUNT}`;
-    if(RUNTEST==0) await sendemail();
+    if(RUNTEST==0) await sendAdminMail();
   }
 }
 
@@ -338,12 +369,31 @@ const gmail_transporter = nodemailer.createTransport({
     }
 });
 
-// setup email data
+// setup email data for google sender
 const gmailOptions = {
     from: EMAILUSER, // sender address
     to: 'someone@somewhere.com', // list of receivers
     subject: 'Your Free Music Software from Sensel', // Subject line
     text: 'Serial number authorizations', // plain text body
+};
+
+//Alternate email setup:
+///SETUP Email service for nbor email
+const ntransporter = nodemailer.createTransport({
+    host: 'sub5.mail.dreamhost.com',
+    port: 465,
+    secure: true,
+    auth: {
+        user: EMAIL,
+        pass: EPASS
+    }
+});
+// setup email data with unicode symbols
+const nmailOptions = {
+    from: '"Node App" <node@nbor.us>', // sender address
+    to: 'p@nbor.us', // list of receivers
+    subject: 'Alternate Mail From Node App', // Subject line
+    text: 'There is a Problem with GMAIL', // plain text body
 };
 
 async function process_post(req, res) {
