@@ -259,7 +259,7 @@ async function sendTemplate(cart,emailto){
   let art_uc = '';
   let bw_sn =  '';
   let tempFile = '';
-
+  console.log(`>> contents: ${cart.arturia_all} , ${cart.bitwig_8ts}`);
   if(cart.arturia_all != -1){
     // create strings of the auth codes from the cart
     for(let i in cart.arturia_all){
@@ -270,7 +270,7 @@ async function sendTemplate(cart,emailto){
     art_sn = 'please contact <a href="mailto:support@sensel.com">support@sensel.com</a> for your Arturia serial numbers'
   }
 
-  if(cart.bw_8ts != -1){
+  if(cart.bitwig_8ts != -1){
     for(let i in cart.bitwig_8ts){
       bw_sn += cart.bitwig_8ts[i]+' <br>';
     }
