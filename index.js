@@ -234,6 +234,7 @@ async function soft_auths(req,auth){
   cart.arturia_all = art_cart;
   cart.bitwig_8ts = bw_cart;
   console.log(`>> lengths: ${cart.arturia_all.length} , ${cart.bitwig_8ts.length}`);
+  console.log(`>> contents: ${cart.arturia_all} , ${cart.bitwig_8ts}`);
   return cart;
 }
 
@@ -254,9 +255,9 @@ async function update_db (req,rec_id,db_select){
 }
 
 async function sendTemplate(cart,emailto){
-  let art_sn = '<br>';
-  let art_uc = '<br>';
-  let bw_sn =  '<br>';
+  let art_sn = '';
+  let art_uc = '';
+  let bw_sn =  '';
   let tempFile = '';
 
   if(cart.arturia_all != -1){
