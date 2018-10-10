@@ -278,17 +278,22 @@ async function sendTemplate(cart,emailto){
     bw_sn = 'please contact <a href="mailto:support@sensel.com">support@sensel.com</a> for your Bitwig serial numbers'
   }
 
+  let templateData = { bitwig_sn: bw_sn, arturia_sn: art_sn, arturia_uc: art_uc, arturia_name:'',bitwig_name:''};
   console.log(`arturia : ${art_sn} , ${art_uc} - bitwig : ${bw_sn}`)
+
   //figure out what email template to use
   if(cart.bitwig_8ts.length > 0 || cart.bitwig_8ts == -1){
+    templateData.bitwig_name = 'Bitwig';
+    templateData.arturia_name = 'and Arturia';
     tempFile = 'art-all_bw-s8t.ejs';
     console.log('using email template for arturia and bitwig ');
   }else{
+    templateData.arturia_name = 'Arturia';
     tempFile = 'art-all.ejs';
     console.log('using email template for arturia ');
   }
+
   const template = __dirname+'/emails/swcodes/'+tempFile; //art-all.ejs or art-all_bw-s8t.ejs
-  const templateData = { bitwig_sn: bw_sn, arturia_sn: art_sn, arturia_uc: art_uc};
   console.log('Begin....');
   ejs.renderFile(template, templateData , function (err, data) {
     console.log('******')
