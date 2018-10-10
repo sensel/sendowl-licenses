@@ -280,7 +280,7 @@ async function sendTemplate(cart,emailto){
 
   console.log(`arturia : ${art_sn} , ${art_uc} - bitwig : ${bw_sn}`)
   //figure out what email template to use
-  if(cart.bitwig_8ts.length>0){
+  if(cart.bitwig_8ts.length > 0 || cart.bitwig_8ts == -1){
     tempFile = 'art-all_bw-s8t.ejs';
     console.log('using email template for arturia and bitwig ');
   }else{
