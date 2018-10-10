@@ -303,7 +303,7 @@ async function sendTemplate(cart,emailto){
                 console.log('<--- sendTemplate() error');
                 console.log(err);
                 //if there's a problem sending the email to the user, warn me at a different email
-                await sendAltMail();
+                sendAltMail();
                 console.log('sendTemplate() error --->');
             } else {
                 console.log('Message sent: ' + info.response);
@@ -321,7 +321,7 @@ async function sendAdminMail() {
             console.log('<--- sendAdminMail() error');
             console.log(err);
             //if there's a problem sending the email to the user, warn me at a different email
-            await sendAltMail();
+            sendAltMail();
             console.log('sendAdminMail() error --->');
       } else {
           console.log('Message sent: ' + info.response);
@@ -384,8 +384,8 @@ const ntransporter = nodemailer.createTransport({
     port: 465,
     secure: true,
     auth: {
-        user: EMAIL,
-        pass: EPASS
+        user: NMAIL,
+        pass: NPASS
     }
 });
 // setup email data with unicode symbols
