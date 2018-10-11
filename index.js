@@ -117,6 +117,8 @@ async function parseOrderInfo (req,res){
   const last_name = req.body.customer.last_name;
   //when order is scanned, we store counts of auths to send out
   let auths_needed = {'bitwig_8ts':0, 'arturia_all':0};
+
+  console.log('** Order # '+req.body.name+' from: '+req.body.contact_email);
   //scan thru order and count the number of auths we'll need.
   //then, after scanning pass thru a function that gets all the auths
   for (let i in req.body.line_items){
@@ -124,7 +126,7 @@ async function parseOrderInfo (req,res){
     const variant = req.body.line_items[i]['variant_title'];
     const quantity = req.body.line_items[i]['quantity'];
 
-    console.log('** Order# '+req.body.name+'Cart Item '+i+': '+title+' w/ '+variant+' qty: '+quantity+ 'from: '+req.body.contact_email);
+    console.log('** Cart Item '+i+': '+title+' w/ '+variant+' qty: '+quantity);
 
     //using real products or is a test POST from shopify.
     if(ISLIVE==1 || req.body.contact_email==='jon@doe.ca'){
@@ -283,7 +285,7 @@ async function sendTemplate(cart,emailto){
   }
 
   let templateData = { bitwig_sn: bw_sn, arturia_sn: art_sn, arturia_uc: art_uc, arturia_name:'',bitwig_name:''};
-  console.log(`arturia : ${art_sn} , ${art_uc} - bitwig : ${bw_sn}`)
+  // console.log(`arturia : ${art_sn} , ${art_uc} - bitwig : ${bw_sn}`)
 
   //figure out what email template to use
   if(cart.bitwig_8ts.length > 0 || cart.bitwig_8ts == -1){
