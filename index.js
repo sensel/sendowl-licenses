@@ -1,10 +1,6 @@
 //many thanks to Andrew Hay Kurtz https://github.com/ahk
 
 //TO DO:
-// - destroy test database
-// - add real serial numbers to database
-// - get mLab on a non-free account
-// - set ISLIVE to 1
 // - turn off sendOwl
 
 
@@ -69,9 +65,9 @@ if(ISLIVE==1){
 const TESTMAIL = process.env.TESTMAIL; //when testing, don't send to customer, send to me
 const ADMINMAIL = process.env.ADMINMAIL; //for warnings
 //how many serials should be have left before we send out warning emails to admin?
-const WARNING_COUNT = 5;
+const WARNING_COUNT = 50;
+const dbName = process.env.MONGO_DBNAME
 
-const dbName = 'heroku_4xmj3rhd';//'heroku_z503k0d1';
 //just declare these variables, we'll fill them later
 let dbBitwig;
 let dbArturia;
