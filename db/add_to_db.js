@@ -5,8 +5,8 @@ const fs = require('fs');
 const path = require('path');
 const MongoClient = require('mongodb').MongoClient;
 const license_sources = {
-  'arturia':'licences-70-6-1-8-10001-1000_Sensel complete.txt',
-  'bitwig':'Bitwig Studio 8-Track Licenses for Sensel - generated-serials.txt',
+  'arturia':'arturia_toenter.txt',
+  'bitwig':'bitwig_toenter.txt',
   'arturia_test':'arturia_test.txt',
   'bitwig_test':'bitwig_test.txt'
 };
@@ -31,7 +31,8 @@ if(process.argv[2]){
 // Connection URL
 const url = process.env['MONGO_URI'];
 // Database Name
-const dbName = 'heroku_z503k0d1';
+const dbName = process.env.MONGO_DBNAME
+// const dbName = 'heroku_z503k0d1';
 
 // run given doFunc inside a database transaction
 async function dbDo(doFunc) {
@@ -92,6 +93,7 @@ async function addToBase(db,product) {
   if(product==='bitwig'){
     for (let line of lines) {
       const snum = line.split(',')[0];
+      console.log(`${counter} - adding ${snum}`)
       await coll.insertOne({
         "serial":snum,
         "customer_name":"",
@@ -106,9 +108,9 @@ async function addToBase(db,product) {
   //arturia has an unlock code AND a serial number for its auth.
   if(product==='arturia'){
     for (let line of lines) {
-      console.log(`lines ${lines[0]}`)
       const snum = line.split(',')[0];
       const unlock = line.split(',')[1];
+      console.log(`${counter} - adding ${snum}, ${unlock}`)
       await coll.insertOne({
         "serial":snum,
         "unlock_code":unlock,

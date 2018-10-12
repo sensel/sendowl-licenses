@@ -8,7 +8,7 @@ const MongoClient = require('mongodb').MongoClient;
 // Connection URL
 const url = process.env['MONGO_URI'];
 // Database Name
-const dbName = 'heroku_z503k0d1';
+const dbName = process.env.MONGO_DBNAME
 
 // run given doFunc inside a database transaction
 async function dbDo(doFunc) {
