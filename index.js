@@ -8,8 +8,11 @@
 // - turn off sendOwl
 
 
-// app is at https://polar-sands-88575.herokuapp.com/
+// app was at https://polar-sands-88575.herokuapp.com/
 //https://git.heroku.com/polar-sands-88575.git
+
+//app is now at https://sensel-shopify-softauths.herokuapp.com/
+// https://git.heroku.com/sensel-shopify-softauths.git
 
 'use strict';
 //for local environment variables in a '.env' file. not needed in heroku cloud
@@ -68,7 +71,7 @@ const ADMINMAIL = process.env.ADMINMAIL; //for warnings
 //how many serials should be have left before we send out warning emails to admin?
 const WARNING_COUNT = 5;
 
-const dbName = 'heroku_z503k0d1';
+const dbName = 'heroku_4xmj3rhd';//'heroku_z503k0d1';
 //just declare these variables, we'll fill them later
 let dbBitwig;
 let dbArturia;
