@@ -1,8 +1,6 @@
 //many thanks to Andrew Hay Kurtz https://github.com/ahk
 
 //TO DO:
-// - turn off sendOwl
-
 
 // app was at https://polar-sands-88575.herokuapp.com/
 //https://git.heroku.com/polar-sands-88575.git
@@ -100,6 +98,20 @@ async function dbDo(doFunc) {
   }
 }
 
+//test if there are database entries for this Order already:
+async function ifOrderExists(coll,orderID) {
+  let result = false;
+  let id_check = await coll.find({ order_id: orderID });
+  for (let doc = await id_check.next(); doc != null; doc = await id_check.next()) {
+      console.log(`ID: ${doc._id}`);
+      if(doc._id){
+        result = true;
+      }
+    }
+  console.log('result: '+result)
+  return result;
+}
+
 //get the order info from Shopify and grab all the interesting bits
 //to figure out what, if any, serial numbers are needed.
 async function parseOrderInfo (req,res){
@@ -114,53 +126,62 @@ async function parseOrderInfo (req,res){
   //when order is scanned, we store counts of auths to send out
   let auths_needed = {'bitwig_8ts':0, 'arturia_all':0};
 
-  console.log('** Order # '+req.body.name+' from: '+req.body.contact_email);
-  //scan thru order and count the number of auths we'll need.
-  //then, after scanning pass thru a function that gets all the auths
-  for (let i in req.body.line_items){
-    const title = req.body.line_items[i]['title'];
-    const variant = req.body.line_items[i]['variant_title'];
-    const quantity = req.body.line_items[i]['quantity'];
+  console.log('** Order # '+order_num+' from: '+req.body.contact_email);
 
-    console.log('** Cart Item '+i+': '+title+' w/ '+variant+' qty: '+quantity);
+  let orderExists_art = await ifOrderExists(dbArturia,order_num);
+  let orderExists_bw = await ifOrderExists(dbBitwig,order_num);
+  if(orderExists_art || orderExists_bw){
+    console.log(`the order ${order_num} has already been assigned serials for Arturia: ${orderExists_art}`);
+    console.log(`the order ${order_num} has already been assigned serials for Bitwig: ${orderExists_bw}`);
+    console.log(`--skipping order scan. need ${auths_needed.arturia_all} Arturia licenses and ${auths_needed.bitwig_8ts} Bitwig licenses----`);
+  }else{
+    //scan thru order and count the number of auths we'll need.
+    //then, after scanning pass thru a function that gets all the auths
+    for (let i in req.body.line_items){
+      const title = req.body.line_items[i]['title'];
+      const variant = req.body.line_items[i]['variant_title'];
+      const quantity = req.body.line_items[i]['quantity'];
 
-    //using real products or is a test POST from shopify.
-    if(ISLIVE==1 || req.body.contact_email==='jon@doe.ca'){
-      if(title == 'The Sensel Morph with 1 Overlay'){
-        if(variant=='Music Production' || variant=='Piano' || variant=='Drum Pad' || variant=="Innovator's"){
-          //provide Arturia and Bitwig code
-          auths_needed.bitwig_8ts = auths_needed.bitwig_8ts + quantity;
-          auths_needed.arturia_all = auths_needed.arturia_all + quantity;
-        }else{
-          //provide only Arturia
-          auths_needed.arturia_all = auths_needed.arturia_all + quantity;
+      console.log('** Cart Item '+i+': '+title+' w/ '+variant+' qty: '+quantity);
+
+      //using real products or is a test POST from shopify.
+      if(ISLIVE==1 || req.body.contact_email==='jon@doe.ca'){
+        if(title == 'The Sensel Morph with 1 Overlay'){
+          if(variant=='Music Production' || variant=='Piano' || variant=='Drum Pad' || variant=="Innovator's"){
+            //provide Arturia and Bitwig code
+            auths_needed.bitwig_8ts = auths_needed.bitwig_8ts + quantity;
+            auths_needed.arturia_all = auths_needed.arturia_all + quantity;
+          }else{
+            //provide only Arturia
+            auths_needed.arturia_all = auths_needed.arturia_all + quantity;
+          }
         }
-      }
-      if(title == "Morph Music Maker's Bundle"){
-        //provide Arturia and Bitwig Codes
-        auths_needed.bitwig_8ts = auths_needed.bitwig_8ts + quantity;
-        auths_needed.arturia_all = auths_needed.arturia_all + quantity;
-      }
-    }
-
-    if(ISLIVE==0){
-      //using test products:
-      console.log(`## not live ${title}, ${variant}, ${quantity}`)
-      if(title == 'SenselTest'){
-        console.log('SENSEL TEST PRODUCT');
-        if(variant=="Innovator's"){
-          console.log('test: INNOVATOR OVERLAY VARIANT');
-          auths_needed.arturia_all = auths_needed.arturia_all + quantity;
-        }
-        if(variant=="Piano"){
-          console.log('test: PIANO OVERLAY VARIANT');
+        if(title == "Morph Music Maker's Bundle"){
+          //provide Arturia and Bitwig Codes
           auths_needed.bitwig_8ts = auths_needed.bitwig_8ts + quantity;
           auths_needed.arturia_all = auths_needed.arturia_all + quantity;
         }
       }
-    }
-  }//end order scan
-  console.log(`-----done scanning order. need ${auths_needed.arturia_all} Arturia licenses and ${auths_needed.bitwig_8ts} Bitwig licenses----`);
+
+      if(ISLIVE==0){
+        //using test products:
+        console.log(`## not live ${title}, ${variant}, ${quantity}`)
+        if(title == 'SenselTest'){
+          console.log('SENSEL TEST PRODUCT');
+          if(variant=="Innovator's"){
+            console.log('test: INNOVATOR OVERLAY VARIANT');
+            auths_needed.arturia_all = auths_needed.arturia_all + quantity;
+          }
+          if(variant=="Piano"){
+            console.log('test: PIANO OVERLAY VARIANT');
+            auths_needed.bitwig_8ts = auths_needed.bitwig_8ts + quantity;
+            auths_needed.arturia_all = auths_needed.arturia_all + quantity;
+          }
+        }
+      }
+    }//end order scan
+    console.log(`-----done scanning order. need ${auths_needed.arturia_all} Arturia licenses and ${auths_needed.bitwig_8ts} Bitwig licenses----`);
+  }
 
   //now go through db and get the auth keys as needed
   if(auths_needed.arturia_all>0 || auths_needed.bitwig_8ts>0){
@@ -176,13 +197,16 @@ async function parseOrderInfo (req,res){
 //returns an object with arrays of serials/authorizations for different titles
 //if there are no serials left in the database, instead of arrays, we get -1 returned
 async function soft_auths(req,auth){
-  console.log(`>> getting authorizations for Arturia: ${auth.arturia_all} and Bitwig: ${auth.bitwig_8ts} <<`);
   // auth.bitwig_8ts is number of bitwig licenses we need to deliver
   // auth.arturia_all is number of arturia licenses we need to deliver
   let cart = {'arturia_all':[],'bitwig_8ts':[]};
-  // find the first record where there is no order ID ('lic_docs'), get the license info,
-  // then update entry with the new info
-  //returns an array of license info. Entry 0 is Arturia, entry 1 is Bitwig.
+  //check if this order ID has been processed. sometimes webhooks send mulitples
+
+    console.log(`>> getting authorizations for Arturia: ${auth.arturia_all} and Bitwig: ${auth.bitwig_8ts} <<`);
+
+    // find the first record where there is no order ID ('lic_docs'), get the license info,
+    // then update entry with the new info
+    //returns an array of license info. Entry 0 is Arturia, entry 1 is Bitwig.
 
   //find Arturia auths
   let art_cart = [];
