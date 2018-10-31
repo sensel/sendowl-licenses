@@ -426,6 +426,7 @@ async function process_post(req, res) {
   if (hash === hmac) {
     // It's a match! All good
     console.log('Authorized Order from Shopify!');
+    res.sendStatus(200);
     await dbDo(async (db) => {
       dbBitwig = db.collection('bitwig-licenses');
       dbArturia = db.collection('arturia-licenses');
@@ -435,7 +436,6 @@ async function process_post(req, res) {
       await parseOrderInfo(req,res);
     });
 
-    res.sendStatus(200);
   } else {
     // No match! This request didn't originate from Shopify
     console.log('Danger! Not from Shopify!');
