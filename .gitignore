@@ -2,3 +2,5 @@ node_modules/
 .env
 license sources/
 mongodump/
+license sources.zip
+testorders.zip
