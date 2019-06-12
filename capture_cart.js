@@ -19,7 +19,6 @@ const EMAIL = process.env.EMAIL_USER;
 const EPASS = process.env.EMAIL_PASS;
 const GMAIL = process.env.GMAIL_USER;
 const GPASS = process.env.GMAIL_PASS;
-const WRITEFILE = false;
 const RUNTEST = 0;
 
 
@@ -54,7 +53,7 @@ async function sendEmail(data){
 }
 
 async function process_get(req, res) {
-  console.log('We got an order!...');
+  console.log('-----------------Cart Update!...');
   for(let i in req){
     // console.log(`i: ${i}`);
   }
@@ -74,22 +73,16 @@ async function process_get(req, res) {
   if (hash === hmac) {
     // It's a match! All good
     console.log('Phew, it came from Shopify!');
-    console.log(`email fields ${req.body.customer.email} ${req.body.contact_email}`);
-    for (let i in req.body.line_items){
-      var title = req.body.line_items[i]['title'];
-      var sku = req.body.line_items[i]['sku'];
-      console.log(`skus ${sku} title ${title}`)
-    }
+    console.log(`product title ${req.body.line_items[0].title}`)
     var json = JSON.stringify(req.body);
-    sendEmail(json);
-    if(WRITEFILE){
-      fs.writeFile('ShopifyExample.json', json, (err) => {
-        // throws an error, you could also catch it here
-        if (err) throw err;
-        // success case, the file was saved
-        console.log('Order JSON saved!');
-      });
-    }
+    // sendEmail(json);
+    // fs.writeFile('ShopifyExample.txt', json, (err) => {
+    //   // throws an error, you could also catch it here
+    //   if (err) throw err;
+    //   // success case, the file was saved
+    //   console.log('Order JSON saved!');
+    // });
+
     res.sendStatus(200);
   } else {
     // No match! This request didn't originate from Shopify
@@ -113,20 +106,38 @@ async function parseOrderInfo (req,res){
 // `-----done scanning order. need ${auths_needed.arturia_all} Artu
   console.log(`** Order # ${order_num} from: ${req.body.contact_email} name: ${first_name} ${last_name}`);
 
-        if(ISLIVE==1 || req.body.contact_email==='jon@doe.ca'){
-            //Morph + MP,             Piano,          Drum,        Innovator,        Buchla,      MM Bundle
-            let all_and_bw8ts = (sku==='S4008' || sku==='S4009' || sku==='S4010' || sku==='S4002' || sku==='S4013' || sku ==='S4001');
-            let all_only = (sku === "S4007" || sku === "S4011" || sku === "S4003" || sku === "S4004" || sku === "S4005" || sku === "S0002")
-            if(all_and_bw8ts){
-              //provide Arturia and Bitwig code
-              auths_needed.bitwig_8ts = auths_needed.bitwig_8ts + quantity;
-              auths_needed.arturia_all = auths_needed.arturia_all + quantity;
-            //Morph +      VEO            Gaming         QWERTY        AZERTY        DVORAK           No Overlay
-          }else if(all_only){
-              //provide only Arturia
-              auths_needed.arturia_all = auths_needed.arturia_all + quantity;
-            }
-        }
+}
+
+async function process_post(req, res) {
+  console.log('Incoming order!...');
+  let hash = 0;
+  let hmac = 1;
+  if(RUNTEST==0){
+    // We'll compare the hmac to our own hash
+    hmac = req.get('X-Shopify-Hmac-Sha256');
+    console.log(`signature from order post: ${hmac}`);
+    // Use raw-body to get the body (buffer)
+    const body = JSON.stringify(req.body);
+    // Create a hash using the body and our key
+    hash = crypto
+      .createHmac('sha256', SHOPSECRET)
+      .update(req.rawbody, 'utf8', 'hex')
+      .digest('base64');
+  }else{
+    hash = 1;
+  }
+  // Compare our hash to Shopify's hash
+  if (hash === hmac) {
+    // It's a match! All good
+    console.log('Authorized Order from Shopify!');
+    res.sendStatus(200);
+    await parseOrderInfo(req,res);
+
+  } else {
+    // No match! This request didn't originate from Shopify
+    console.log('Danger! Not from Shopify!');
+    res.sendStatus(403);
+  }
 
 }
 

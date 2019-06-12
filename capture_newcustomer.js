@@ -19,7 +19,6 @@ const EMAIL = process.env.EMAIL_USER;
 const EPASS = process.env.EMAIL_PASS;
 const GMAIL = process.env.GMAIL_USER;
 const GPASS = process.env.GMAIL_PASS;
-const WRITEFILE = false;
 const RUNTEST = 0;
 
 
@@ -35,7 +34,7 @@ const gmail_transporter = nodemailer.createTransport({
 
 // setup email data
 const gmailOptions = {
-    from: '"Sensel - Your Free Software" <peter@sensel.com>', // sender address
+    from: '"New Customer" <peter@sensel.com>', // sender address
     to: 'p@nbor.us', // list of receivers
     subject: 'From Node App', // Subject line
     text: 'Hello world', // plain text body
@@ -53,11 +52,12 @@ async function sendEmail(data){
   });
 }
 
-async function process_get(req, res) {
-  console.log('We got an order!...');
+async function process_webhook(req, res) {
+  console.log('New customer incoming...');
   for(let i in req){
-    // console.log(`i: ${i}`);
+    console.log(`i: ${i}`);
   }
+  console.log(`----------------------------`)
   console.log(`--rawbody: ${req.rawbody}`)
   // We'll compare the hmac to our own hash
   const hmac = req.get('X-Shopify-Hmac-Sha256');
@@ -73,23 +73,25 @@ async function process_get(req, res) {
   // Compare our hash to Shopify's hash
   if (hash === hmac) {
     // It's a match! All good
-    console.log('Phew, it came from Shopify!');
-    console.log(`email fields ${req.body.customer.email} ${req.body.contact_email}`);
-    for (let i in req.body.line_items){
-      var title = req.body.line_items[i]['title'];
-      var sku = req.body.line_items[i]['sku'];
-      console.log(`skus ${sku} title ${title}`)
-    }
+    console.log('Success, request came from Shopify!');
     var json = JSON.stringify(req.body);
-    sendEmail(json);
-    if(WRITEFILE){
-      fs.writeFile('ShopifyExample.json', json, (err) => {
-        // throws an error, you could also catch it here
-        if (err) throw err;
-        // success case, the file was saved
-        console.log('Order JSON saved!');
-      });
-    }
+    console.log(`note field ${req.body}`);
+    //extract the serial and store from the note field
+    var sn_regex = /\nSerialNumber\: (.*)/;
+    var store_regex = /StorePurchased\: (.*)/;
+    var sn = req.body.note.match(sn_regex)[1];
+    var store = req.body.note.match(store_regex)[1];
+    console.log(`serial number ${sn}`);
+    console.log(`bought at ${store}`);
+    //send the JSON contents to email, because you can.
+    // sendEmail(json);
+    fs.writeFile('ShopifyExampleCustomer.txt', json, (err) => {
+    // throws an error, you could also catch it here
+    if (err) throw err;
+    // success case, the file was saved
+    console.log('Order JSON saved!');
+});
+
     res.sendStatus(200);
   } else {
     // No match! This request didn't originate from Shopify
@@ -113,23 +115,7 @@ async function parseOrderInfo (req,res){
 // `-----done scanning order. need ${auths_needed.arturia_all} Artu
   console.log(`** Order # ${order_num} from: ${req.body.contact_email} name: ${first_name} ${last_name}`);
 
-        if(ISLIVE==1 || req.body.contact_email==='jon@doe.ca'){
-            //Morph + MP,             Piano,          Drum,        Innovator,        Buchla,      MM Bundle
-            let all_and_bw8ts = (sku==='S4008' || sku==='S4009' || sku==='S4010' || sku==='S4002' || sku==='S4013' || sku ==='S4001');
-            let all_only = (sku === "S4007" || sku === "S4011" || sku === "S4003" || sku === "S4004" || sku === "S4005" || sku === "S0002")
-            if(all_and_bw8ts){
-              //provide Arturia and Bitwig code
-              auths_needed.bitwig_8ts = auths_needed.bitwig_8ts + quantity;
-              auths_needed.arturia_all = auths_needed.arturia_all + quantity;
-            //Morph +      VEO            Gaming         QWERTY        AZERTY        DVORAK           No Overlay
-          }else if(all_only){
-              //provide only Arturia
-              auths_needed.arturia_all = auths_needed.arturia_all + quantity;
-            }
-        }
-
 }
-
 
 function main() {
   // create a server that listens for URLs with order info.
@@ -153,10 +139,10 @@ function main() {
     })
 
     .post('/shopify/webhook', async function(req, res){
-      process_get(req,res)
+      process_webhook(req,res)
     })
     .post('/', async function(req, res){
-      process_get(req,res)
+      process_webhook(req,res)
     })
 
     .listen(SERVER_PORT, () => console.log(`Sensel: We're listening on ${ SERVER_PORT }`));
