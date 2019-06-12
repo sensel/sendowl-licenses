@@ -58,7 +58,7 @@ if(ISLIVE==1){
   EMAILUSER = SUSER;
   EMAILPASS = SPASS;
 }
-
+let skunames = {"S4001":"Morph Music Maker's Bundle", "S0002":"No Overlay", "S4009":"Piano", "S4008":"Music Production", "S4010":"Drum Pad", "S4002":"Innovator's	", "S4007":"Video Editing", "S4011":"Gaming", "S4003":"QWERTY Keyboard", "S4004":"AZERTY Keyboard", "S4005":"DVORAK Keyboard", "S4013":"Morph with Buchla Thunder Overlay"}
 
 const TESTMAIL = process.env.TESTMAIL; //when testing, don't send to customer, send to me
 const ADMINMAIL = process.env.ADMINMAIL; //for warnings
@@ -116,6 +116,10 @@ async function ifOrderExists(coll,orderID) {
 //to figure out what, if any, serial numbers are needed.
 async function parseOrderInfo (req,res){
   let email = req.body.contact_email;
+  if (email===null){
+    email = req.body.customer.email
+  }
+  console.log(`email fields ${req.body.customer.email} ${req.body.contact_email}`)
   //if app isn't live, send to me, not customer.
   if(ISLIVE==0){
     email = TESTMAIL;
@@ -125,8 +129,8 @@ async function parseOrderInfo (req,res){
   const last_name = req.body.customer.last_name;
   //when order is scanned, we store counts of auths to send out
   let auths_needed = {'bitwig_8ts':0, 'arturia_all':0};
-
-  console.log('** Order # '+order_num+' from: '+req.body.contact_email);
+// `-----done scanning order. need ${auths_needed.arturia_all} Artu
+  console.log(`** Order # ${order_num} from: ${req.body.contact_email} name: ${first_name} ${last_name}`);
 
   let orderExists_art = await ifOrderExists(dbArturia,order_num);
   let orderExists_bw = await ifOrderExists(dbBitwig,order_num);
@@ -141,26 +145,40 @@ async function parseOrderInfo (req,res){
       const title = req.body.line_items[i]['title'];
       const variant = req.body.line_items[i]['variant_title'];
       const quantity = req.body.line_items[i]['quantity'];
-
+      const sku = req.body.line_items[i]['sku'];
       console.log('** Cart Item '+i+': '+title+' w/ '+variant+' qty: '+quantity);
 
       //using real products or is a test POST from shopify.
+      // if(ISLIVE==1 || req.body.contact_email==='jon@doe.ca'){
+      //   if(title == 'The Sensel Morph with 1 Overlay'){
+      //     if(variant=='Music Production' || variant=='Piano' || variant=='Drum Pad' || variant=="Innovator's"){
+      //       //provide Arturia and Bitwig code
+      //       auths_needed.bitwig_8ts = auths_needed.bitwig_8ts + quantity;
+      //       auths_needed.arturia_all = auths_needed.arturia_all + quantity;
+      //     }else{
+      //       //provide only Arturia
+      //       auths_needed.arturia_all = auths_needed.arturia_all + quantity;
+      //     }
+      //   }
+      //   if(title == "Morph Music Maker's Bundle"){
+      //     //provide Arturia and Bitwig Codes
+      //     auths_needed.bitwig_8ts = auths_needed.bitwig_8ts + quantity;
+      //     auths_needed.arturia_all = auths_needed.arturia_all + quantity;
+      //   }
+      // }
       if(ISLIVE==1 || req.body.contact_email==='jon@doe.ca'){
-        if(title == 'The Sensel Morph with 1 Overlay'){
-          if(variant=='Music Production' || variant=='Piano' || variant=='Drum Pad' || variant=="Innovator's"){
+          //Morph + MP,             Piano,          Drum,        Innovator,        Buchla,      MM Bundle
+          let all_and_bw8ts = (sku==='S4008' || sku==='S4009' || sku==='S4010' || sku==='S4002' || sku==='S4013' || sku ==='S4001');
+          let all_only = (sku === "S4007" || sku === "S4011" || sku === "S4003" || sku === "S4004" || sku === "S4005" || sku === "S0002")
+          if(all_and_bw8ts){
             //provide Arturia and Bitwig code
             auths_needed.bitwig_8ts = auths_needed.bitwig_8ts + quantity;
             auths_needed.arturia_all = auths_needed.arturia_all + quantity;
-          }else{
+          //Morph +      VEO            Gaming         QWERTY        AZERTY        DVORAK           No Overlay
+        }else if(all_only){
             //provide only Arturia
             auths_needed.arturia_all = auths_needed.arturia_all + quantity;
           }
-        }
-        if(title == "Morph Music Maker's Bundle"){
-          //provide Arturia and Bitwig Codes
-          auths_needed.bitwig_8ts = auths_needed.bitwig_8ts + quantity;
-          auths_needed.arturia_all = auths_needed.arturia_all + quantity;
-        }
       }
 
       if(ISLIVE==0){
@@ -411,7 +429,7 @@ const gmailOptions = {
 
 //Alternate email setup:
 ///SETUP Email service for nbor email
-const ntransporter = nodemailer.createTransport({
+const nmail_transporter = nodemailer.createTransport({
     host: 'sub5.mail.dreamhost.com',
     port: 465,
     secure: true,
