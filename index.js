@@ -69,6 +69,7 @@ const dbName = process.env.MONGO_DBNAME
 //just declare these variables, we'll fill them later
 let dbBitwig;
 let dbArturia;
+let dbMorphSNs;
 
 // run given doFunc inside a database transaction
 async function dbDo(doFunc) {
@@ -131,9 +132,12 @@ async function parseOrderInfo (req,res){
   let auths_needed = {'bitwig_8ts':0, 'arturia_all':0};
 // `-----done scanning order. need ${auths_needed.arturia_all} Artu
   console.log(`** Order # ${order_num} from: ${req.body.contact_email} name: ${first_name} ${last_name}`);
-
-  let orderExists_art = await ifOrderExists(dbArturia,order_num);
-  let orderExists_bw = await ifOrderExists(dbBitwig,order_num);
+  let orderExists_art = false;
+  let orderExists_bw = false;
+  if(ISLIVE===1){
+    orderExists_art = await ifOrderExists(dbArturia,order_num);
+    orderExists_bw = await ifOrderExists(dbBitwig,order_num);
+  }
   if(orderExists_art || orderExists_bw){
     console.log(`the order ${order_num} has already been assigned serials for Arturia: ${orderExists_art}`);
     console.log(`the order ${order_num} has already been assigned serials for Bitwig: ${orderExists_bw}`);
@@ -170,12 +174,15 @@ async function parseOrderInfo (req,res){
           //Morph + MP,             Piano,          Drum,        Innovator,        Buchla,      MM Bundle
           let all_and_bw8ts = (sku==='S4008' || sku==='S4009' || sku==='S4010' || sku==='S4002' || sku==='S4013' || sku ==='S4001');
           let all_only = (sku === "S4007" || sku === "S4011" || sku === "S4003" || sku === "S4004" || sku === "S4005" || sku === "S0002")
+          let itemname = skunames[sku];
           if(all_and_bw8ts){
+            console.log(`getting Analog Lab Lite and Bitwig  for ${sku} name ${itemname}`);
             //provide Arturia and Bitwig code
             auths_needed.bitwig_8ts = auths_needed.bitwig_8ts + quantity;
             auths_needed.arturia_all = auths_needed.arturia_all + quantity;
           //Morph +      VEO            Gaming         QWERTY        AZERTY        DVORAK           No Overlay
         }else if(all_only){
+            console.log(`getting Analog Lab Lite for ${sku} name ${itemname}`);
             //provide only Arturia
             auths_needed.arturia_all = auths_needed.arturia_all + quantity;
           }
@@ -200,17 +207,17 @@ async function parseOrderInfo (req,res){
     }//end order scan
     console.log(`-----done scanning order. need ${auths_needed.arturia_all} Arturia licenses and ${auths_needed.bitwig_8ts} Bitwig licenses----`);
   }
-
-  //now go through db and get the auth keys as needed
-  if(auths_needed.arturia_all>0 || auths_needed.bitwig_8ts>0){
-    let auth_cart = await soft_auths(req,auths_needed);
-    // then email the "cart" of authorizations to customer
-    await sendTemplate(auth_cart,email);
-  }else{
-    console.log('no Serials needed for this order');
+  if(ISLIVE===1){
+    //now go through db and get the auth keys as needed
+    if(auths_needed.arturia_all>0 || auths_needed.bitwig_8ts>0){
+      let auth_cart = await soft_auths(req,auths_needed);
+      // then email the "cart" of authorizations to customer
+      await sendTemplate(auth_cart,email);
+    }else{
+      console.log('no Serials needed for this order');
+    }
   }
 }
-
 //soft_auths looks for empty order_id fields to find available serial numbers
 //returns an object with arrays of serials/authorizations for different titles
 //if there are no serials left in the database, instead of arrays, we get -1 returned
@@ -230,6 +237,7 @@ async function soft_auths(req,auth){
   let art_cart = [];
   let ids = [];
   let index = 0
+
   let lic_docs = await dbArturia.find({ order_id: '' }).limit(auth.arturia_all);
   for (let doc = await lic_docs.next(); doc != null; doc = await lic_docs.next()) {
       art_cart[index] = [doc.serial,doc.unlock_code];
@@ -338,7 +346,7 @@ async function sendTemplate(cart,emailto){
   }
 
   const template = __dirname+'/emails/swcodes/'+tempFile; //art-all.ejs or art-all_bw-s8t.ejs
-  console.log('Begin....');
+  console.log('Begin email process....');
   ejs.renderFile(template, templateData , function (err, data) {
     console.log('******')
     if (err) {
@@ -485,12 +493,51 @@ async function process_post(req, res) {
   }
 
 }
+async function process_reg(req, res) {
+  //get email address from the Registration webhook then send them a BWS8T and ALL licenses
+    // It's a match! All good
+    console.log('Authorized Registration from Shopify!');
+    res.sendStatus(200);
+    await dbDo(async (db) => {
+      dbBitwig = db.collection('bitwig-licenses');
+      dbArturia = db.collection('arturia-licenses');
+      let email = req.body.customer.email;
+
+      //make sure we have licenses:
+      await check_counts();
+      //serial number registered, so we send 1 of each license.
+
+      //a bit clunky, but cut and pasted from parseOrderInfo():
+      if(ISLIVE===1){
+        let auths_needed = {'bitwig_8ts':0, 'arturia_all':0};
+        auths_needed.arturia_all = 1;
+        auths_needed.bitwig_8ts = 1;
+        if(auths_needed.arturia_all>0 || auths_needed.bitwig_8ts>0){
+          let auth_cart = await soft_auths(req,auths_needed);
+          // then email the "cart" of authorizations to customer
+          await sendTemplate(auth_cart,email);
+        }else{
+          console.log('no Serials needed for this order');
+        }
+      }else{
+        console.log(`sending licenses to ${email}`)
+      }
+
+    });
+
+  } else {
+    // No match! This request didn't originate from Shopify
+    console.log('Danger! Not from Shopify!');
+    res.sendStatus(403);
+  }
+}
 
 async function main() {
   await dbDo(async (db) => {
     dbBitwig = db.collection('bitwig-licenses');
     dbArturia = db.collection('arturia-licenses');
-
+    //not currently using SNs, but here for future ref:
+    dbMorphSNs = db.collection('morph-serials');
     //check the serial counts on start:
     await check_counts();
   });
@@ -515,6 +562,9 @@ async function main() {
     })
     .post('/', async function(req, res) {
       process_post(req,res);
+    })
+    .post('/morph_registration', async function(req, res) {
+      process_reg(req,res);
     })
     .post('/shopify/webhook', async function(req, res) {
       process_post(req,res);
