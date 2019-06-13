@@ -55,7 +55,7 @@ async function sendEmail(data){
 async function process_webhook(req, res) {
   console.log('New customer incoming...');
   for(let i in req){
-    console.log(`i: ${i}`);
+    //console.log(`i: ${i}`);
   }
   console.log(`----------------------------`)
   console.log(`--rawbody: ${req.rawbody}`)
