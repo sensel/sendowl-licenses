@@ -116,11 +116,11 @@ async function ifOrderExists(coll,orderID) {
 //get the order info from Shopify and grab all the interesting bits
 //to figure out what, if any, serial numbers are needed.
 async function parseOrderInfo (req,res){
+  console.log(`email fields ${req.body.customer.email} ${req.body.contact_email}`);
   let email = req.body.contact_email;
-  if (email===null){
+  if (!email){
     email = req.body.customer.email
   }
-  console.log(`email fields ${req.body.customer.email} ${req.body.contact_email}`)
   //if app isn't live, send to me, not customer.
   if(ISLIVE==0){
     email = TESTMAIL;
@@ -496,13 +496,15 @@ async function process_post(req, res) {
 async function process_reg(req, res) {
   //get email address from the Registration webhook then send them a BWS8T and ALL licenses
     // It's a match! All good
-    console.log('Authorized Registration from Shopify!');
+    console.log('>>Authorized Registration from Shopify!');
     res.sendStatus(200);
     await dbDo(async (db) => {
       dbBitwig = db.collection('bitwig-licenses');
       dbArturia = db.collection('arturia-licenses');
       let email = req.body.customer.email;
-
+      console.log(`customer info ${req.body.customer}`);
+      console.log('------------------')
+      console.log(`email ${email}`)
       //make sure we have licenses:
       await check_counts();
       //serial number registered, so we send 1 of each license.
@@ -520,16 +522,11 @@ async function process_reg(req, res) {
           console.log('no Serials needed for this order');
         }
       }else{
-        console.log(`sending licenses to ${email}`)
+        console.log(`fake sending licenses to ${email}`)
       }
 
     });
 
-  } else {
-    // No match! This request didn't originate from Shopify
-    console.log('Danger! Not from Shopify!');
-    res.sendStatus(403);
-  }
 }
 
 async function main() {
