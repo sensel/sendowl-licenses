@@ -134,7 +134,7 @@ async function parseOrderInfo (req,res){
   console.log(`** Order # ${order_num} from: ${req.body.contact_email} name: ${first_name} ${last_name}`);
   let orderExists_art = false;
   let orderExists_bw = false;
-  if(ISLIVE===1){
+  if(ISLIVE==1){
     orderExists_art = await ifOrderExists(dbArturia,order_num);
     orderExists_bw = await ifOrderExists(dbBitwig,order_num);
   }
@@ -207,7 +207,7 @@ async function parseOrderInfo (req,res){
     }//end order scan
     console.log(`-----done scanning order. need ${auths_needed.arturia_all} Arturia licenses and ${auths_needed.bitwig_8ts} Bitwig licenses----`);
   }
-  if(ISLIVE===1){
+  if(ISLIVE==1){
     //now go through db and get the auth keys as needed
     if(auths_needed.arturia_all>0 || auths_needed.bitwig_8ts>0){
       let auth_cart = await soft_auths(req,auths_needed);
@@ -502,7 +502,6 @@ async function process_reg(req, res) {
       dbBitwig = db.collection('bitwig-licenses');
       dbArturia = db.collection('arturia-licenses');
       let email = req.body.customer.email;
-      console.log(`customer info ${req.body.customer}`);
       console.log('------------------')
       console.log(`email ${email}`)
       //make sure we have licenses:
@@ -510,7 +509,7 @@ async function process_reg(req, res) {
       //serial number registered, so we send 1 of each license.
 
       //a bit clunky, but cut and pasted from parseOrderInfo():
-      if(ISLIVE===1){
+      if(ISLIVE==1){
         let auths_needed = {'bitwig_8ts':0, 'arturia_all':0};
         auths_needed.arturia_all = 1;
         auths_needed.bitwig_8ts = 1;
