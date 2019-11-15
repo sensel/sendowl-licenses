@@ -5,3 +5,4 @@ mongodump/
 license sources.zip
 testorders.zip
 test_order.js
+db/arturia-licenses_serials_export.json
