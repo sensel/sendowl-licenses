@@ -58,8 +58,39 @@ if(ISLIVE==1){
   EMAILUSER = SUSER;
   EMAILPASS = SPASS;
 }
-let skunames = {"S4001":"Morph Music Maker's Bundle", "S0002":"No Overlay", "S4009":"Piano", "S4008":"Music Production", "S4010":"Drum Pad", "S4002":"Innovator's	", "S4007":"Video Editing", "S4011":"Gaming", "S4003":"QWERTY Keyboard", "S4004":"AZERTY Keyboard", "S4005":"DVORAK Keyboard", "S4013":"Morph with Buchla Thunder Overlay"}
-
+// let skunames = {"S4001":"Morph Music Maker's Bundle", "S0002":"No Overlay", "S4009":"Piano", "S4008":"Music Production", "S4010":"Drum Pad", "S4002":"Innovator's	", "S4007":"Video Editing", "S4011":"Gaming", "S4003":"QWERTY Keyboard", "S4004":"AZERTY Keyboard", "S4005":"DVORAK Keyboard", "S4013":"Morph with Buchla Thunder Overlay"}
+let skunames = {
+ "S4001":"Morph Music Maker's Bundle",
+ "S40002":"No Overlay",
+ "S4009":"Piano",
+ "S4008":"Music Production",
+ "S4010":"Drum Pad",
+ "S4002":"Innovator's	",
+ "S4007":"Video Editing",
+ "S4011":"Gaming",
+ "S4003":"QWERTY Keyboard",
+ "S4004":"AZERTY Keyboard",
+ "S4005":"DVORAK Keyboard",
+ "S4013":"Morph with Buchla Thunder Overlay",
+ "S4015" : "Everything - QWERTY Gray WithDevCable",
+ "S4016" : "Everything - QWERTY Gray NoDevCable",
+ "S4017" : "Everything - QWERTY Blue WithDevCable",
+ "S4018" : "Everything - QWERTY Blue NoDevCable",
+ "S4019" : "Everything - QWERTY Pink WithDevCable",
+ "S4020" : "Everything - QWERTY Pink NoDevCable",
+ "S4021" : "Everything - AZERTY Gray WithDevCable",
+ "S4022" : "Everything - AZERTY Gray NoDevCable",
+ "S4023" : "Everything - AZERTY Blue WithDevCable",
+ "S4024" : "Everything - AZERTY Blue NoDevCable",
+ "S4025" : "Everything - AZERTY Pink WithDevCable",
+ "S4026" : "Everything - AZERTY Pink NoDevCable",
+ "S4027" : "Everything - DVORAK Gray WithDevCable",
+ "S4028" : "Everything - DVORAK Gray NoDevCable",
+ "S4029" : "Everything - DVORAK Blue WithDevCable",
+ "S4030" : "Everything - DVORAK Blue NoDevCable",
+ "S4031" : "Everything - DVORAK Pink WithDevCable",
+ "S4032" : "Everything - DVORAK Pink NoDevCable",
+ }
 const TESTMAIL = process.env.TESTMAIL; //when testing, don't send to customer, send to me
 const ADMINMAIL = process.env.ADMINMAIL; //for warnings
 //how many serials should be have left before we send out warning emails to admin?
@@ -171,9 +202,11 @@ async function parseOrderInfo (req,res){
       //   }
       // }
       if(ISLIVE==1 || req.body.contact_email==='jon@doe.ca'){
+          //The Everything Bundles - lots of variants!
+          let everything_bundle = (sku==='S4015' || sku==='S4016' || sku==='S4017' || sku==='S4018' || sku==='S4019' || sku==='S4020' || sku==='S4021' || sku==='S4022' || sku==='S4023' || sku==='S4024' || sku==='S4025' || sku==='S4026' || sku==='S4027' || sku==='S4028' || sku==='S4029' || sku==='S4030' || sku==='S4031' || sku==='S4032');
           //Morph + MP,             Piano,          Drum,        Innovator,        Buchla,      MM Bundle
           let all_and_bw8ts = (sku==='S4008' || sku==='S4009' || sku==='S4010' || sku==='S4002' || sku==='S4013' || sku ==='S4001');
-          let all_only = (sku === "S4007" || sku === "S4011" || sku === "S4003" || sku === "S4004" || sku === "S4005" || sku === "S0002")
+          let all_only = (sku === "S4007" || sku === "S4011" || sku === "S4003" || sku === "S4004" || sku === "S4005" || sku === "S0002");
           let itemname = skunames[sku];
           if(all_and_bw8ts){
             console.log(`getting Analog Lab Lite and Bitwig  for ${sku} name ${itemname}`);
@@ -181,7 +214,7 @@ async function parseOrderInfo (req,res){
             auths_needed.bitwig_8ts = auths_needed.bitwig_8ts + quantity;
             auths_needed.arturia_all = auths_needed.arturia_all + quantity;
           //Morph +      VEO            Gaming         QWERTY        AZERTY        DVORAK           No Overlay
-        }else if(all_only){
+          }else if(all_only){
             console.log(`getting Analog Lab Lite for ${sku} name ${itemname}`);
             //provide only Arturia
             auths_needed.arturia_all = auths_needed.arturia_all + quantity;
@@ -191,6 +224,12 @@ async function parseOrderInfo (req,res){
       if(ISLIVE==0){
         //using test products:
         console.log(`## not live ${title}, ${variant}, ${quantity}`)
+        let everything_bundle = (sku==='S4015' || sku==='S4016' || sku==='S4017' || sku==='S4018' || sku==='S4019' || sku==='S4020' || sku==='S4021' || sku==='S4022' || sku==='S4023' || sku==='S4024' || sku==='S4025' || sku==='S4026' || sku==='S4027' || sku==='S4028' || sku==='S4029' || sku==='S4030' || sku==='S4031' || sku==='S4032');
+        //Morph + MP,             Piano,          Drum,        Innovator,        Buchla,      MM Bundle
+        let all_and_bw8ts = (sku==='S4008' || sku==='S4009' || sku==='S4010' || sku==='S4002' || sku==='S4013' || sku ==='S4001' || everything_bundle);
+        let all_only = (sku === "S4007" || sku === "S4011" || sku === "S4003" || sku === "S4004" || sku === "S4005" || sku === "S0002");
+        let itemname = skunames[sku];
+        console.log(`testing sku parse - everything? ${everything_bundle} - arturia and bitwig? ${all_and_bw8ts} - arturia only? ${all_only} - item Name? ${itemname}`);
         if(title == 'SenselTest'){
           console.log('SENSEL TEST PRODUCT');
           if(variant=="Innovator's"){
@@ -573,7 +612,12 @@ main();
 //for testing with JSON files instead of POST from Shopify
 async function readTest(file) {
   return new Promise((resolve, reject) => {
-    fs.readFile('testorders/test_order_morph.json', 'utf8', (err, data) => {
+    // test_order_morph.json
+    // test_order_case.json
+    // test_order_morphbundle_complete.json
+    // test_order_morphbundle.json
+    // test_order_senseltestpiano.json
+    fs.readFile('testorders/test_order_case.json', 'utf8', (err, data) => {
       if (err) reject(err);
       else resolve(data);
     });
