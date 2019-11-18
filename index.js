@@ -181,7 +181,7 @@ async function parseOrderInfo (req,res){
       const variant = req.body.line_items[i]['variant_title'];
       const quantity = req.body.line_items[i]['quantity'];
       const sku = req.body.line_items[i]['sku'];
-      console.log('** Cart Item '+i+': '+title+' w/ '+variant+' qty: '+quantity);
+      console.log('** Cart Item '+i+': sku '+sku+ ' title '+title+' w/ '+variant+' qty: '+quantity);
 
       //using real products or is a test POST from shopify.
       // if(ISLIVE==1 || req.body.contact_email==='jon@doe.ca'){
@@ -202,10 +202,10 @@ async function parseOrderInfo (req,res){
       //   }
       // }
       if(ISLIVE==1 || req.body.contact_email==='jon@doe.ca'){
-          //The Everything Bundles - lots of variants!
+          //The Everything Bundles - lots of variants! Let's shorten it into a variable:
           let everything_bundle = (sku==='S4015' || sku==='S4016' || sku==='S4017' || sku==='S4018' || sku==='S4019' || sku==='S4020' || sku==='S4021' || sku==='S4022' || sku==='S4023' || sku==='S4024' || sku==='S4025' || sku==='S4026' || sku==='S4027' || sku==='S4028' || sku==='S4029' || sku==='S4030' || sku==='S4031' || sku==='S4032');
           //Morph + MP,             Piano,          Drum,        Innovator,        Buchla,      MM Bundle
-          let all_and_bw8ts = (sku==='S4008' || sku==='S4009' || sku==='S4010' || sku==='S4002' || sku==='S4013' || sku ==='S4001');
+          let all_and_bw8ts = (everything_bundle || sku==='S4008' || sku==='S4009' || sku==='S4010' || sku==='S4002' || sku==='S4013' || sku ==='S4001');
           let all_only = (sku === "S4007" || sku === "S4011" || sku === "S4003" || sku === "S4004" || sku === "S4005" || sku === "S0002");
           let itemname = skunames[sku];
           if(all_and_bw8ts){
@@ -617,7 +617,7 @@ async function readTest(file) {
     // test_order_morphbundle_complete.json
     // test_order_morphbundle.json
     // test_order_senseltestpiano.json
-    fs.readFile('testorders/test_order_case.json', 'utf8', (err, data) => {
+    fs.readFile('testorders/test_order_morphbundle_complete.json', 'utf8', (err, data) => {
       if (err) reject(err);
       else resolve(data);
     });
