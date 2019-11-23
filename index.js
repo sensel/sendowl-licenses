@@ -100,6 +100,7 @@ const dbName = process.env.MONGO_DBNAME
 //just declare these variables, we'll fill them later
 let dbBitwig;
 let dbArturia;
+let dbAalto;
 let dbMorphSNs;
 
 // run given doFunc inside a database transaction
@@ -160,19 +161,22 @@ async function parseOrderInfo (req,res){
   const first_name = req.body.customer.first_name;
   const last_name = req.body.customer.last_name;
   //when order is scanned, we store counts of auths to send out
-  let auths_needed = {'bitwig_8ts':0, 'arturia_all':0};
+  let auths_needed = {'bitwig_8ts':0, 'arturia_all':0,'madrona_aalto':0};
 // `-----done scanning order. need ${auths_needed.arturia_all} Artu
   console.log(`** Order # ${order_num} from: ${req.body.contact_email} name: ${first_name} ${last_name}`);
   let orderExists_art = false;
   let orderExists_bw = false;
+  let orderExists_ml = false;
   if(ISLIVE==1){
     orderExists_art = await ifOrderExists(dbArturia,order_num);
     orderExists_bw = await ifOrderExists(dbBitwig,order_num);
+    orderExists_ml = await ifOrderExists(dbAalto,order_num);
   }
-  if(orderExists_art || orderExists_bw){
-    console.log(`the order ${order_num} has already been assigned serials for Arturia: ${orderExists_art}`);
+  if(orderExists_art || orderExists_bw || orderExists_ml){
+    console.log(`the order ${order_num} has already been assigned codes for Arturia: ${orderExists_art}`);
     console.log(`the order ${order_num} has already been assigned serials for Bitwig: ${orderExists_bw}`);
-    console.log(`--skipping order scan. need ${auths_needed.arturia_all} Arturia licenses and ${auths_needed.bitwig_8ts} Bitwig licenses----`);
+    console.log(`the order ${order_num} has already been assigned codes for Aalto: ${orderExists_ml}`);
+    console.log(`--skipping order scan. need ${auths_needed.arturia_all} Arturia licenses and ${auths_needed.bitwig_8ts} Bitwig licenses and ${auths_needed.madrona_aalto} Madrona codes----`);
   }else{
     //scan thru order and count the number of auths we'll need.
     //then, after scanning pass thru a function that gets all the auths
@@ -202,13 +206,25 @@ async function parseOrderInfo (req,res){
       //   }
       // }
       if(ISLIVE==1 || req.body.contact_email==='jon@doe.ca'){
+          let aalto_bundle = false; //need to figure out if order gets aalto
+          //title has something like "Morph with Aalto w/ Buchla Thunder" - always has Morph with Aalto
+          //can't really do this with SKUs because it's kind of a pain.
+          let aalto_check = title.search("Aalto");
+          if(aalto_check>-1){
+            aalto_bundle=true;
+          }
           //The Everything Bundles - lots of variants! Let's shorten it into a variable:
           let everything_bundle = (sku==='S4015' || sku==='S4016' || sku==='S4017' || sku==='S4018' || sku==='S4019' || sku==='S4020' || sku==='S4021' || sku==='S4022' || sku==='S4023' || sku==='S4024' || sku==='S4025' || sku==='S4026' || sku==='S4027' || sku==='S4028' || sku==='S4029' || sku==='S4030' || sku==='S4031' || sku==='S4032');
           //Morph + MP,             Piano,          Drum,        Innovator,        Buchla,      MM Bundle
           let all_and_bw8ts = (everything_bundle || sku==='S4008' || sku==='S4009' || sku==='S4010' || sku==='S4002' || sku==='S4013' || sku ==='S4001');
           let all_only = (sku === "S4007" || sku === "S4011" || sku === "S4003" || sku === "S4004" || sku === "S4005" || sku === "S0002");
           let itemname = skunames[sku];
-          if(all_and_bw8ts){
+          if(aalto_bundle){
+            console.log(`getting Madrona Aalto, Analog Lab Lite, and Bitwig  for ${sku} name ${itemname}`);
+            auths_needed.madrona_aalto = auths_needed.madrona_aalto + quantity;
+            auths_needed.bitwig_8ts = auths_needed.bitwig_8ts + quantity;
+            auths_needed.arturia_all = auths_needed.arturia_all + quantity;
+          }else if(all_and_bw8ts){
             console.log(`getting Analog Lab Lite and Bitwig  for ${sku} name ${itemname}`);
             //provide Arturia and Bitwig code
             auths_needed.bitwig_8ts = auths_needed.bitwig_8ts + quantity;
@@ -224,12 +240,36 @@ async function parseOrderInfo (req,res){
       if(ISLIVE==0){
         //using test products:
         console.log(`## not live ${title}, ${variant}, ${quantity}`)
+
+        let aalto_bundle = false; //need to figure out if order gets aalto
+        //title has something like "Morph with Aalto w/ Buchla Thunder" - always has Morph with Aalto
+        //can't really do this with SKUs because it's kind of a pain.
+        let aalto_check = title.search("Aalto");
+        if(aalto_check>-1){
+          aalto_bundle=true;
+        }
         let everything_bundle = (sku==='S4015' || sku==='S4016' || sku==='S4017' || sku==='S4018' || sku==='S4019' || sku==='S4020' || sku==='S4021' || sku==='S4022' || sku==='S4023' || sku==='S4024' || sku==='S4025' || sku==='S4026' || sku==='S4027' || sku==='S4028' || sku==='S4029' || sku==='S4030' || sku==='S4031' || sku==='S4032');
         //Morph + MP,             Piano,          Drum,        Innovator,        Buchla,      MM Bundle
         let all_and_bw8ts = (sku==='S4008' || sku==='S4009' || sku==='S4010' || sku==='S4002' || sku==='S4013' || sku ==='S4001' || everything_bundle);
         let all_only = (sku === "S4007" || sku === "S4011" || sku === "S4003" || sku === "S4004" || sku === "S4005" || sku === "S0002");
         let itemname = skunames[sku];
-        console.log(`testing sku parse - everything? ${everything_bundle} - arturia and bitwig? ${all_and_bw8ts} - arturia only? ${all_only} - item Name? ${itemname}`);
+        if(aalto_bundle){
+          console.log(`getting Madrona Aalto, Analog Lab Lite, and Bitwig  for ${sku} name ${itemname}`);
+          auths_needed.madrona_aalto = auths_needed.madrona_aalto + quantity;
+          auths_needed.bitwig_8ts = auths_needed.bitwig_8ts + quantity;
+          auths_needed.arturia_all = auths_needed.arturia_all + quantity;
+        }else if(all_and_bw8ts){
+          console.log(`getting Analog Lab Lite and Bitwig  for ${sku} name ${itemname}`);
+          //provide Arturia and Bitwig code
+          auths_needed.bitwig_8ts = auths_needed.bitwig_8ts + quantity;
+          auths_needed.arturia_all = auths_needed.arturia_all + quantity;
+        //Morph +      VEO            Gaming         QWERTY        AZERTY        DVORAK           No Overlay
+        }else if(all_only){
+          console.log(`getting Analog Lab Lite for ${sku} name ${itemname}`);
+          //provide only Arturia
+          auths_needed.arturia_all = auths_needed.arturia_all + quantity;
+        }
+        console.log(`testing sku parse - aalto? ${aalto_bundle} everything? ${everything_bundle} - arturia and bitwig? ${all_and_bw8ts} - arturia only? ${all_only} - item Name? ${itemname}`);
         if(title == 'SenselTest'){
           console.log('SENSEL TEST PRODUCT');
           if(variant=="Innovator's"){
@@ -243,12 +283,13 @@ async function parseOrderInfo (req,res){
           }
         }
       }
+
     }//end order scan
-    console.log(`-----done scanning order. need ${auths_needed.arturia_all} Arturia licenses and ${auths_needed.bitwig_8ts} Bitwig licenses----`);
+    console.log(`-----done scanning order. need ${auths_needed.arturia_all} Arturia licenses and ${auths_needed.bitwig_8ts} Bitwig licenses and ${auths_needed.madrona_aalto} Madrona Aalto codes----`);
   }
   if(ISLIVE==1){
     //now go through db and get the auth keys as needed
-    if(auths_needed.arturia_all>0 || auths_needed.bitwig_8ts>0){
+    if(auths_needed.arturia_all>0 || auths_needed.bitwig_8ts>0 || auths_needed.madrona_aalto>0){
       let auth_cart = await soft_auths(req,auths_needed);
       // then email the "cart" of authorizations to customer
       await sendTemplate(auth_cart,email);
@@ -263,14 +304,41 @@ async function parseOrderInfo (req,res){
 async function soft_auths(req,auth){
   // auth.bitwig_8ts is number of bitwig licenses we need to deliver
   // auth.arturia_all is number of arturia licenses we need to deliver
-  let cart = {'arturia_all':[],'bitwig_8ts':[]};
+  let cart = {'arturia_all':[],'bitwig_8ts':[],'madrona_aalto':[]};
   //check if this order ID has been processed. sometimes webhooks send mulitples
 
-    console.log(`>> getting authorizations for Arturia: ${auth.arturia_all} and Bitwig: ${auth.bitwig_8ts} <<`);
+    console.log(`>> getting authorizations for Arturia: ${auth.arturia_all} and Bitwig: ${auth.bitwig_8ts} and Aalto: ${auth.madrona_aalto} <<`);
 
     // find the first record where there is no order ID ('lic_docs'), get the license info,
     // then update entry with the new info
     //returns an array of license info. Entry 0 is Arturia, entry 1 is Bitwig.
+
+  //find the Madrona Aalto auths
+  let ml_cart = [];
+  ids = [];
+  index = 0;
+  if(auth.ml_aalto>0){
+    lic_docs = await dbAalto.find({ order_id: '' }).limit(auth.ml_aalto);
+    for (let doc = await lic_docs.next(); doc != null; doc = await lic_docs.next()) {
+        ml_cart[index] = doc.coupon;
+        ids[index] = doc._id;
+        index++;
+        console.log(`AALTO COUPON CODES: ${doc.coupon}`);
+      }
+    console.log(`check lengths- cart: ${ml_cart.length} vs needed ${auth.ml_aalto}`)
+    if(ml_cart.length===auth.ml_aalto){
+      let j = 0;
+      for(let i in ml_cart){
+        await update_db(req,ids[i],dbAalto);
+        console.log(`++ Aalto sn is ${ml_cart[i]}`);
+      }
+    }else{
+      console.log('Need More Aalto Serial Numbers');
+      ml_cart = -1;
+    }
+  }else{
+    console.log('No Aalto auths needed')
+  }
 
   //find Arturia auths
   let art_cart = [];
@@ -324,8 +392,10 @@ async function soft_auths(req,auth){
 
   cart.arturia_all = art_cart;
   cart.bitwig_8ts = bw_cart;
-  console.log(`>> lengths: ${cart.arturia_all.length} , ${cart.bitwig_8ts.length}`);
-  console.log(`>> contents: ${cart.arturia_all} , ${cart.bitwig_8ts}`);
+  cart.madrona_aalto = ml_cart;
+
+  console.log(`>> lengths: ${cart.arturia_all.length} , ${cart.bitwig_8ts.length} , ${cart.madrona_aalto.length}`);
+  console.log(`>> contents: ${cart.arturia_all} , ${cart.bitwig_8ts} , ${cart.madrona_aalto}`);
   return cart;
 }
 
@@ -349,8 +419,9 @@ async function sendTemplate(cart,emailto){
   let art_sn = '';
   let art_uc = '';
   let bw_sn =  '';
+  let mla_cc = '';
   let tempFile = '';
-  console.log(`>> contents: ${cart.arturia_all} , ${cart.bitwig_8ts}`);
+  console.log(`>> contents: ${cart.arturia_all} , ${cart.bitwig_8ts} , ${cart.madrona_aalto}`);
   if(cart.arturia_all != -1){
     // create strings of the auth codes from the cart
     for(let i in cart.arturia_all){
@@ -358,7 +429,7 @@ async function sendTemplate(cart,emailto){
       art_uc += cart.arturia_all[i][1]+' <br>';
     }
   }else{
-    art_sn = 'please contact <a href="mailto:support@sensel.com">support@sensel.com</a> for your Arturia serial numbers'
+    art_sn = 'please contact <a href="mailto:support@sensel.com">support@sensel.com</a> for your Arturia serial numbers.'
   }
 
   if(cart.bitwig_8ts != -1){
@@ -366,25 +437,40 @@ async function sendTemplate(cart,emailto){
       bw_sn += cart.bitwig_8ts[i]+' <br>';
     }
   }else{
-    bw_sn = 'please contact <a href="mailto:support@sensel.com">support@sensel.com</a> for your Bitwig serial numbers'
+    bw_sn = 'please contact <a href="mailto:support@sensel.com">support@sensel.com</a> for your Bitwig serial numbers.'
+  }
+  if(cart.madrona_aalto != -1){
+    for(let i in cart.madrona_aalto){
+      mla_cc += cart.madrona_aalto[i]+' <br>';
+    }
+  }else{
+    mla_cc = 'please contact <a href="mailto:support@sensel.com">support@sensel.com</a> for your Madrona Labs Aalto coupon code.'
   }
 
-  let templateData = { bitwig_sn: bw_sn, arturia_sn: art_sn, arturia_uc: art_uc, arturia_name:'',bitwig_name:''};
+  let templateData = { bitwig_sn: bw_sn, arturia_sn: art_sn, arturia_uc: art_uc, madrona_cc:mla_cc, madrona_name:'',arturia_name:'',bitwig_name:'',splice_code:'splicesenselholiday'};
   // console.log(`arturia : ${art_sn} , ${art_uc} - bitwig : ${bw_sn}`)
 
-  //figure out what email template to use
+  //figure out what email template to use. -1 means we are out of numbers, but customer still should get one.
   if(cart.bitwig_8ts.length > 0 || cart.bitwig_8ts == -1){
     templateData.bitwig_name = 'Bitwig';
     templateData.arturia_name = 'and Arturia';
     tempFile = 'art-all_bw-s8t.ejs';
     console.log('using email template for arturia and bitwig ');
-  }else{
+
+  }else if(cart.madrona_aalto.length > 0 || cart.madrona_aalto == -1){
+    templateData.madrona_name = 'Madrona Labs';
+    templateData.bitwig_name = 'Bitwig';
+    templateData.arturia_name = 'and Arturia';
+    tempFile = 'art-all_bw-s8t-aalto.ejs';
+    console.log('using email template for madrona, arturia and bitwig ');
+
+  }else {
     templateData.arturia_name = 'Arturia';
     tempFile = 'art-all.ejs';
     console.log('using email template for arturia ');
   }
 
-  const template = __dirname+'/emails/swcodes/'+tempFile; //art-all.ejs or art-all_bw-s8t.ejs
+  const template = __dirname+'/emails/swcodes/'+tempFile; //art-all.ejs or art-all_bw-s8t.ejs or art-all_bw-s8t-aalto.ejs
   console.log('Begin email process....');
   ejs.renderFile(template, templateData , function (err, data) {
     console.log('******')
@@ -392,7 +478,7 @@ async function sendTemplate(cart,emailto){
         console.log(err);
     } else {
         gmailOptions.to = emailto;
-        gmailOptions.subject='Your Free Music Software from Sensel';
+        gmailOptions.subject='Your Music Software from Sensel';
         gmailOptions.html = data;
         console.log(`email to ===> ${emailto} from ${EMAILUSER}`);
         gmail_transporter.sendMail(gmailOptions, function (err, info) {
@@ -452,6 +538,14 @@ async function check_counts(){
   if(count<WARNING_COUNT){
     gmailOptions.subject = `Arturia Serial count is < ${WARNING_COUNT}`;
     gmailOptions.text = `Arturia Serial count is < ${WARNING_COUNT}`;
+    if(RUNTEST==0) await sendAdminMail();
+  }
+
+  count = await dbAalto.countDocuments({ order_id: '' });
+  console.log('remaining arturia:'+count);
+  if(count<WARNING_COUNT){
+    gmailOptions.subject = `Aalto Coupon count is < ${WARNING_COUNT}`;
+    gmailOptions.text = `Aalto Coupon count is < ${WARNING_COUNT}`;
     if(RUNTEST==0) await sendAdminMail();
   }
 }
@@ -519,7 +613,7 @@ async function process_post(req, res) {
     await dbDo(async (db) => {
       dbBitwig = db.collection('bitwig-licenses');
       dbArturia = db.collection('arturia-licenses');
-
+      dbAalto = db.collection('aalto-licenses');
       await check_counts();
       //Order came from Shopify, so we'll parse the info and email the customer relevant software licenses.
       await parseOrderInfo(req,res);
@@ -533,13 +627,14 @@ async function process_post(req, res) {
 
 }
 async function process_reg(req, res) {
-  //get email address from the Registration webhook then send them a BWS8T and ALL licenses
+  //get email address from the Registration webhook then send them a BWS8T and ALL licenses. No need to process for Madrona Labs Aalto.
     // It's a match! All good
     console.log('>>Authorized Registration from Shopify!');
     res.sendStatus(200);
     await dbDo(async (db) => {
       dbBitwig = db.collection('bitwig-licenses');
       dbArturia = db.collection('arturia-licenses');
+      //no need to check for Aalto because that is only available through shopify purchase. This is for registration.
       let email = req.body.customer.email;
       console.log('------------------')
       console.log(`email ${email}`)
@@ -549,9 +644,10 @@ async function process_reg(req, res) {
 
       //a bit clunky, but cut and pasted from parseOrderInfo():
       if(ISLIVE==1){
-        let auths_needed = {'bitwig_8ts':0, 'arturia_all':0};
+        let auths_needed = {'bitwig_8ts':0, 'arturia_all':0}; //no need for madrona_aalto in here
         auths_needed.arturia_all = 1;
         auths_needed.bitwig_8ts = 1;
+        //no need to check for Aalto because that is only available through shopify purchase
         if(auths_needed.arturia_all>0 || auths_needed.bitwig_8ts>0){
           let auth_cart = await soft_auths(req,auths_needed);
           // then email the "cart" of authorizations to customer
@@ -571,6 +667,7 @@ async function main() {
   await dbDo(async (db) => {
     dbBitwig = db.collection('bitwig-licenses');
     dbArturia = db.collection('arturia-licenses');
+    dbAalto = db.collection('aalto-licenses');
     //not currently using SNs, but here for future ref:
     dbMorphSNs = db.collection('morph-serials');
     //check the serial counts on start:
@@ -617,7 +714,7 @@ async function readTest(file) {
     // test_order_morphbundle_complete.json
     // test_order_morphbundle.json
     // test_order_senseltestpiano.json
-    fs.readFile('testorders/test_order_morphbundle_complete.json', 'utf8', (err, data) => {
+    fs.readFile('testorders/test_order_morphbundle_aalto.json', 'utf8', (err, data) => {
       if (err) reject(err);
       else resolve(data);
     });
