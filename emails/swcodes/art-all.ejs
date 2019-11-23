@@ -2,6 +2,7 @@
 bitwig_sn
 arturia_sn
 arturia_uc
+splice_code
 -->
 <!--https://www.codementor.io/joshuaaroke/sending-html-message-in-nodejs-express-9i3d3uhjr-->
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
@@ -117,11 +118,11 @@ arturia_uc
 																<td style="line-height:0;" align="center">
 																	<!--Logo-->
 																	<a target="_blank" style="text-decoration:none;" href="https://www.sensel.com/">
-																		<img src="https://cdn.shopify.com/s/files/1/1796/0747/files/Sensel_Logo_200px.png?8530872118949686671" border="0" style="" vspace="0" hspace="0" width="100" height="100" alt="The Sensel Moprh" />
+																		<img src="https://cdn.shopify.com/s/files/1/1796/0747/files/rect_blue_morph_logo.jpg?5515" border="0" style="" vspace="0" hspace="0" width="150" height="100" alt="The Sensel Moprh" />
 																	</a>
 																</td>
 																<td data-color="title" data-size="size title" data-min="25" data-max="45" data-link-color="link title color" data-link-style="text-decoration:none; color:#292c34;" class="title" align="left" style="font:20px Arial, Helvetica, sans-serif; padding:5px 0 15px 15px;">
-																	Start creating with your new music software<br>from <%- bitwig_name %> <%- arturia_name %>.
+																	Start creating with your new music software<br>from <%- bitwig_name %> <%- arturia_name %>, and free sounds from Splice.
 																</td>
 															</tr>
 															<tr>
@@ -166,16 +167,15 @@ arturia_uc
 											<table width="100%" cellpadding="0" cellspacing="0">
 													<tr>
 														<td data-color="text" data-size="size text" data-min="10" data-max="26" data-link-color="link text color" data-link-style="text-decoration:underline; color:#40aceb;" align="" style="font:16px/21px Arial, Helvetica, sans-serif; color:#555; padding:0 0 5px;">
-														Every Morph comes with a free copy of Arturia Analog Lab Lite.
-														Filled with amazing sounds from vintage synths and stunning pianos,
-														Arturia Analog Lab Lite is a fully functional standalone and plugin software
-														that works great with the Morph. To download and register your free copy,
-														visit the
-														<a href='https://www.arturia.com/support/included-analog-lab-lite-quickstart'>
-														Arturia quickstart page.</a>
-														<br>
-														If you find you want to dig deeper with more sounds and richer editing,
-														you can upgrade to Analog Lab Full for just $69 ($130 off).
+															<p>
+															Every Morph comes with a free copy of Arturia Analog Lab Lite. Filled with amazing sounds from vintage synths and stunning pianos, Arturia Analog Lab Lite is a fully functional standalone and plugin software that works great with the Morph. To download and register your free copy, visit the
+															<!--link-->
+															<a href='https://www.arturia.com/support/included-analog-lab-lite-quickstart'>
+															Arturia quickstart page.</a>
+															</p>
+															<p>
+															If you find you want to dig deeper with more sounds and richer editing, you can upgrade to Analog Lab Full for just $69 ($130 off).
+															</p>
 														</td>
 													</tr>
 													<tr>
@@ -195,6 +195,97 @@ arturia_uc
 																	</td>
 																	<td data-color="text" data-size="size text" data-min="10" data-max="26" data-link-color="link text color" data-link-style="text-decoration:underline; color:#40aceb;" align="left" style="font:bold 16px/21px Arial, Helvetica, sans-serif; color:rgb(155,50,35); padding:5px 0 5px 15px;">
 																		<%- arturia_sn %>
+																	</td>
+																</tr>
+															</table>
+														</td>
+													</tr>
+													<tr>
+														<td style="background-color: #ffffff; padding:4px;">&nbsp;
+														</td>
+													</tr>
+													<tr>
+														<td style="padding:0 0 20px;">
+															<table width="580" align="center" style="margin:0 auto;" cellpadding="0" cellspacing="0">
+																<tr>
+																	<td data-bgcolor="bg-button" data-size="size button" data-min="10" data-max="16" class="btn" align="center" style="font:16px Arial, Helvetica, sans-serif; color:#f8f9fb; text-transform:uppercase; mso-padding-alt:12px 10px 10px; border-radius:2px;" bgcolor="#806ba8">
+																		<a target="_blank" style="text-decoration:none; color:#f8f9fb; display:block; padding:12px 10px 10px;" href="https://www.arturia.com/support/included-analog-lab-lite-quickstart">Get Started Now</a>
+																	</td>
+																</tr>
+															</table>
+														</td>
+													</tr>
+												</table>
+											</td>
+									</tr>
+									<tr><td height="1"></td></tr>
+								</table>
+							</td>
+						</tr>
+					</table>
+
+					<!--spacer-->
+					<table width="100%" cellpadding="0" cellspacing="0">
+						<tr>
+							<td data-bgcolor="bg-module" bgcolor="#F1F1F1">
+								<table class="flexible" width="600" align="center" style="margin:0 auto; background-color: #fff" cellpadding="0" cellspacing="0">
+									<tr>
+										<td width="100%" style="background-color:#F1F1F1; padding:10px 0 10px 0;">&nbsp;
+										</td>
+									</tr>
+								</table>
+							</td>
+						</tr>
+					</table>
+
+					<!-- module 4 Splice -->
+					<table data-module="module-2" width="100%" cellpadding="0" cellspacing="0">
+						<tr>
+							<td data-bgcolor="bg-module" bgcolor="#F1F1F1">
+								<table class="flexible" width="600" align="center" style="margin:0 auto; background-color: #fff" cellpadding="0" cellspacing="0">
+									<tr>
+										<td colspan="2" style="padding:10px 0 0 0;">&nbsp;</td>
+									</tr>
+
+									<!--TITLE-->
+									<tr>
+										<td data-color="text" data-size="size text" data-min="10" data-max="26" data-link-color="link text color" data-link-style="font-weight:bold; text-decoration:underline; color:#40aceb;" align="center" style="font: bold  20px/28px Arial, Helvetica, sans-serif; color:black; padding:0 0 15px 0;">
+											Two Months Free Splice Subscription
+										</td>
+									</tr>
+									<!--IMAGE-->
+									<tr>
+										<td class="img-flex" align="center">
+											<img src="https://cdn.shopify.com/s/files/1/1796/0747/files/splice_600.jpg?5505" style="vertical-align:top; padding-top:5px" alt="" width="580" />
+										</td>
+									</tr>
+
+									<!--TEXT-->
+									<tr>
+										<td data-bgcolor="bg-block" class="holder" style="padding: 20px 30px 20px 30px;" >
+											<table width="100%" cellpadding="0" cellspacing="0">
+													<tr>
+														<td data-color="text" data-size="size text" data-min="10" data-max="26" data-link-color="link text color" data-link-style="text-decoration:underline; color:#40aceb;" align="" style="font:16px/21px Arial, Helvetica, sans-serif; color:#555; padding:0 0 5px;">
+														Expand your sound with access to millions of samples, loops, FX, and presets on Splice. Start today with a 2 month free trial. 100 credits free each month, and everything you download is yours to keep. Sounds from vintage synths to Afrofuturist grooves to soaring operas and presets for some of the most popular synths: Splice has it all.
+														It's easy to get started. Just visit the
+														<a href='https://on.splice.com/32ridur'>
+														Splice account page </a>
+														and create an account. On your homepage, click "Start Your Free Trial" and enter the code from below.
+														<br>
+														Offer good for new Splice accounts only.
+														</td>
+													</tr>
+													<tr>
+														<td>
+															<table cellpadding="0" cellspacing="0">
+																<tr>
+																	<td data-color="text" data-size="size text" data-min="10" data-max="26" data-link-color="link text color" data-link-style="text-decoration:underline; color:#40aceb;" align="left" style="font:bold 16px/21px Arial, Helvetica, sans-serif; color:black; padding:5px 0 5px 0;">
+																		Free Trial Code:
+																	</td>
+																</tr>
+																<tr>
+																	<td data-color="text" data-size="size text" data-min="10" data-max="26" data-link-color="link text color" data-link-style="text-decoration:underline; color:#40aceb;" align="left" style="font:bold 16px/21px Arial, Helvetica, sans-serif; color:rgb(155,50,35); padding:5px 0 5px 0;">
+																		<%- splice_code %> <!--splicesenselholiday-->
 																	</td>
 																</tr>
 															</table>
