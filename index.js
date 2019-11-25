@@ -456,20 +456,18 @@ async function sendTemplate(cart,emailto){
   // console.log(`arturia : ${art_sn} , ${art_uc} - bitwig : ${bw_sn}`)
 
   //figure out what email template to use. -1 means we are out of numbers, but customer still should get one.
-  if(cart.bitwig_8ts.length > 0 || cart.bitwig_8ts == -1){
-    templateData.bitwig_name = 'Bitwig';
-    templateData.arturia_name = 'and Arturia';
-    tempFile = 'art-all_bw-s8t.ejs';
-    console.log('using email template for arturia and bitwig ');
-
-  }else if(cart.madrona_aalto.length > 0 || cart.madrona_aalto == -1){
+  if(cart.madrona_aalto.length > 0 || cart.madrona_aalto == -1){
     templateData.madrona_name = 'Madrona Labs';
     templateData.bitwig_name = 'Bitwig';
     templateData.arturia_name = 'and Arturia';
     tempFile = 'art-all_bw-s8t-aalto.ejs';
     console.log('using email template for madrona, arturia and bitwig ');
-
-  }else {
+  } else if(cart.bitwig_8ts.length > 0 || cart.bitwig_8ts == -1){
+    templateData.bitwig_name = 'Bitwig';
+    templateData.arturia_name = 'and Arturia';
+    tempFile = 'art-all_bw-s8t.ejs';
+    console.log('using email template for arturia and bitwig ');
+  } else {
     templateData.arturia_name = 'Arturia';
     tempFile = 'art-all.ejs';
     console.log('using email template for arturia ');
