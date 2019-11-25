@@ -452,7 +452,7 @@ async function sendTemplate(cart,emailto){
     mla_cc = 'please contact <a href="mailto:support@sensel.com">support@sensel.com</a> for your Madrona Labs Aalto coupon code.'
   }
 
-  let templateData = { bitwig_sn: bw_sn, arturia_sn: art_sn, arturia_uc: art_uc, madrona_cc:mla_cc, madrona_name:'',arturia_name:'',bitwig_name:'',splice_code:'splicesenselholiday'};
+  let templateData = { bitwig_sn: bw_sn, arturia_sn: art_sn, arturia_uc: art_uc, aalto_coupon:mla_cc, madrona_name:'',arturia_name:'',bitwig_name:'',splice_code:'splicesenselholiday'};
   // console.log(`arturia : ${art_sn} , ${art_uc} - bitwig : ${bw_sn}`)
 
   //figure out what email template to use. -1 means we are out of numbers, but customer still should get one.
