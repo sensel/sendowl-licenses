@@ -373,7 +373,7 @@ async function soft_auths(req,auth){
   ids = [];
   index = 0;
   if(auth.bitwig_8ts>0){
-    lic_docs_bw = await dbBitwig.find({ order_id: '' }).limit(auth.bitwig_8ts);
+    let lic_docs_bw = await dbBitwig.find({ order_id: '' }).limit(auth.bitwig_8ts);
     for (let doc = await lic_docs_bw.next(); doc != null; doc = await lic_docs_bw.next()) {
         bw_cart[index] = doc.serial;
         ids[index] = doc._id;
