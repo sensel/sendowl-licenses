@@ -343,10 +343,10 @@ async function soft_auths(req,auth){
 
   //find Arturia auths
   let art_cart = [];
-  ids = [];
-  index = 0
+  let ids = [];
+  let index = 0
 
-  lic_docs = await dbArturia.find({ order_id: '' }).limit(auth.arturia_all);
+  let lic_docs = await dbArturia.find({ order_id: '' }).limit(auth.arturia_all);
   for (let doc = await lic_docs.next(); doc != null; doc = await lic_docs.next()) {
       art_cart[index] = [doc.serial,doc.unlock_code];
       ids[index] = doc._id;
@@ -366,10 +366,10 @@ async function soft_auths(req,auth){
 
   //find the bitwig auths
   let bw_cart = [];
-  ids = [];
-  index = 0;
+  let ids = [];
+  let index = 0;
   if(auth.bitwig_8ts>0){
-    lic_docs = await dbBitwig.find({ order_id: '' }).limit(auth.bitwig_8ts);
+    let lic_docs = await dbBitwig.find({ order_id: '' }).limit(auth.bitwig_8ts);
     for (let doc = await lic_docs.next(); doc != null; doc = await lic_docs.next()) {
         bw_cart[index] = doc.serial;
         ids[index] = doc._id;
