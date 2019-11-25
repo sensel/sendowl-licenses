@@ -333,7 +333,7 @@ async function soft_auths(req,auth){
         console.log(`++ Aalto sn is ${ml_cart[i]}`);
       }
     }else{
-      console.log('Need More Aalto Serial Numbers');
+      console.log('Need More Aalto Codes');
       ml_cart = -1;
     }
   }else{
@@ -542,7 +542,7 @@ async function check_counts(){
   }
 
   count = await dbAalto.countDocuments({ order_id: '' });
-  console.log('remaining arturia:'+count);
+  console.log('remaining Aalto:'+count);
   if(count<WARNING_COUNT){
     gmailOptions.subject = `Aalto Coupon count is < ${WARNING_COUNT}`;
     gmailOptions.text = `Aalto Coupon count is < ${WARNING_COUNT}`;
