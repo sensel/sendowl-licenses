@@ -314,13 +314,17 @@ async function soft_auths(req,auth){
     // then update entry with the new info
     //returns an array of license info. Entry 0 is Arturia, entry 1 is Bitwig.
 
-  //find the Madrona Aalto auths
-  let ml_cart = [];
+
   let ids = [];
   let index = 0;
+
+  //find the Madrona Aalto auths
+  let ml_cart = [];
+  ids = [];
+  index = 0;
   if(auth.madrona_aalto>0){
-    let lic_docs = await dbAalto.find({ order_id: '' }).limit(auth.madrona_aalto);
-    for (let doc = await lic_docs.next(); doc != null; doc = await lic_docs.next()) {
+    let lic_docs_ml = await dbAalto.find({ order_id: '' }).limit(auth.madrona_aalto);
+    for (let doc = await lic_docs_ml.next(); doc != null; doc = await lic_docs_ml.next()) {
         ml_cart[index] = doc.coupon;
         ids[index] = doc._id;
         index++;
@@ -343,11 +347,11 @@ async function soft_auths(req,auth){
 
   //find Arturia auths
   let art_cart = [];
-  let ids = [];
-  let index = 0
+  ids = [];
+  index = 0
 
-  let lic_docs = await dbArturia.find({ order_id: '' }).limit(auth.arturia_all);
-  for (let doc = await lic_docs.next(); doc != null; doc = await lic_docs.next()) {
+  let lic_docs_art = await dbArturia.find({ order_id: '' }).limit(auth.arturia_all);
+  for (let doc = await lic_docs_art.next(); doc != null; doc = await lic_docs_art.next()) {
       art_cart[index] = [doc.serial,doc.unlock_code];
       ids[index] = doc._id;
       index++;
@@ -366,11 +370,11 @@ async function soft_auths(req,auth){
 
   //find the bitwig auths
   let bw_cart = [];
-  let ids = [];
-  let index = 0;
+  ids = [];
+  index = 0;
   if(auth.bitwig_8ts>0){
-    let lic_docs = await dbBitwig.find({ order_id: '' }).limit(auth.bitwig_8ts);
-    for (let doc = await lic_docs.next(); doc != null; doc = await lic_docs.next()) {
+    lic_docs_bw = await dbBitwig.find({ order_id: '' }).limit(auth.bitwig_8ts);
+    for (let doc = await lic_docs_bw.next(); doc != null; doc = await lic_docs_bw.next()) {
         bw_cart[index] = doc.serial;
         ids[index] = doc._id;
         index++;
