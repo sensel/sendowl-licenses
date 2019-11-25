@@ -318,16 +318,16 @@ async function soft_auths(req,auth){
   let ml_cart = [];
   let ids = [];
   let index = 0;
-  if(auth.ml_aalto>0){
-    lic_docs = await dbAalto.find({ order_id: '' }).limit(auth.ml_aalto);
+  if(auth.madrona_aalto>0){
+    lic_docs = await dbAalto.find({ order_id: '' }).limit(auth.madrona_aalto);
     for (let doc = await lic_docs.next(); doc != null; doc = await lic_docs.next()) {
         ml_cart[index] = doc.coupon;
         ids[index] = doc._id;
         index++;
         console.log(`AALTO COUPON CODES: ${doc.coupon}`);
       }
-    console.log(`check lengths- cart: ${ml_cart.length} vs needed ${auth.ml_aalto}`)
-    if(ml_cart.length===auth.ml_aalto){
+    console.log(`check lengths- cart: ${ml_cart.length} vs needed ${auth.madrona_aalto}`)
+    if(ml_cart.length===auth.madrona_aalto){
       let j = 0;
       for(let i in ml_cart){
         await update_db(req,ids[i],dbAalto);
