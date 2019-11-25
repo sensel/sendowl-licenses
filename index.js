@@ -72,6 +72,7 @@ let skunames = {
  "S4004":"AZERTY Keyboard",
  "S4005":"DVORAK Keyboard",
  "S4013":"Morph with Buchla Thunder Overlay",
+ "S4014":"Creative Producer Kit",
  "S4015" : "Everything - QWERTY Gray WithDevCable",
  "S4016" : "Everything - QWERTY Gray NoDevCable",
  "S4017" : "Everything - QWERTY Blue WithDevCable",
@@ -216,7 +217,7 @@ async function parseOrderInfo (req,res){
           //The Everything Bundles - lots of variants! Let's shorten it into a variable:
           let everything_bundle = (sku==='S4015' || sku==='S4016' || sku==='S4017' || sku==='S4018' || sku==='S4019' || sku==='S4020' || sku==='S4021' || sku==='S4022' || sku==='S4023' || sku==='S4024' || sku==='S4025' || sku==='S4026' || sku==='S4027' || sku==='S4028' || sku==='S4029' || sku==='S4030' || sku==='S4031' || sku==='S4032');
           //Morph + MP,             Piano,          Drum,        Innovator,        Buchla,      MM Bundle
-          let all_and_bw8ts = (everything_bundle || sku==='S4008' || sku==='S4009' || sku==='S4010' || sku==='S4002' || sku==='S4013' || sku ==='S4001');
+          let all_and_bw8ts = (everything_bundle || sku==='S4008' || sku==='S4009' || sku==='S4010' || sku==='S4002' || sku==='S4013' || sku ==='S4001'|| sku ==='S4014');
           let all_only = (sku === "S4007" || sku === "S4011" || sku === "S4003" || sku === "S4004" || sku === "S4005" || sku === "S0002");
           let itemname = skunames[sku];
           if(aalto_bundle){
