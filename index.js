@@ -319,7 +319,7 @@ async function soft_auths(req,auth){
   let ids = [];
   let index = 0;
   if(auth.madrona_aalto>0){
-    lic_docs = await dbAalto.find({ order_id: '' }).limit(auth.madrona_aalto);
+    let lic_docs = await dbAalto.find({ order_id: '' }).limit(auth.madrona_aalto);
     for (let doc = await lic_docs.next(); doc != null; doc = await lic_docs.next()) {
         ml_cart[index] = doc.coupon;
         ids[index] = doc._id;
@@ -346,7 +346,7 @@ async function soft_auths(req,auth){
   ids = [];
   index = 0
 
-  let lic_docs = await dbArturia.find({ order_id: '' }).limit(auth.arturia_all);
+  lic_docs = await dbArturia.find({ order_id: '' }).limit(auth.arturia_all);
   for (let doc = await lic_docs.next(); doc != null; doc = await lic_docs.next()) {
       art_cart[index] = [doc.serial,doc.unlock_code];
       ids[index] = doc._id;
