@@ -316,7 +316,7 @@ async function soft_auths(req,auth){
 
   //find the Madrona Aalto auths
   let ml_cart = [];
-  ids = [];
+  let ids = [];
   index = 0;
   if(auth.ml_aalto>0){
     lic_docs = await dbAalto.find({ order_id: '' }).limit(auth.ml_aalto);
@@ -343,7 +343,7 @@ async function soft_auths(req,auth){
 
   //find Arturia auths
   let art_cart = [];
-  let ids = [];
+  ids = [];
   let index = 0
 
   let lic_docs = await dbArturia.find({ order_id: '' }).limit(auth.arturia_all);
