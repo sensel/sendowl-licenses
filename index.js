@@ -649,15 +649,16 @@ async function process_reg(req, res) {
       //make sure we have licenses:
       await check_counts();
       //serial number registered, so we send 1 of each license.
-
+      console.log('still alive??')
       //a bit clunky, but cut and pasted from parseOrderInfo():
       if(ISLIVE==1){
         let auths_needed = {'bitwig_8ts':0, 'arturia_all':0, 'madrona_aalto':0};
         auths_needed.arturia_all = 1;
         auths_needed.bitwig_8ts = 1;
+        
+        console.log('maybe alive')
         //no need to check for Aalto because that is only available through shopify purchase
         if(auths_needed.arturia_all>0 || auths_needed.bitwig_8ts>0){
-          console.log('still alive')
           let auth_cart = await soft_auths(req,auths_needed);
           // then email the "cart" of authorizations to customer
           await sendTemplate(auth_cart,email);
