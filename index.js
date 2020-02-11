@@ -654,7 +654,7 @@ async function process_reg(req, res) {
 console.log('------------------');
 console.log(JSON.stringify(req.body));
 console.log('------------------');
-console.log(JSON.stringify(req.items[0].extraFields[0].value));
+console.log(JSON.stringify(req.body.items[0].extraFields[0].value));
 console.log('------------------');
       //a bit clunky, but cut and pasted from parseOrderInfo():
       if(ISLIVE==1){
