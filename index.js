@@ -651,9 +651,10 @@ async function process_reg(req, res) {
       //make sure we have licenses:
       await check_counts();
       //serial number registered, so we send 1 of each license.
-console.log('------------------')
-      console.log(req.body)
-console.log('------------------')
+console.log('------------------');
+      console.log(req.body.extraFields);
+      console.log(req.body.serialNumbers);
+console.log('------------------');
       //a bit clunky, but cut and pasted from parseOrderInfo():
       if(ISLIVE==1){
         let auths_needed = {'bitwig_8ts':0, 'arturia_all':0, 'madrona_aalto':0};
