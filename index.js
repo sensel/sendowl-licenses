@@ -548,13 +548,14 @@ async function check_counts(){
     gmailOptions.text = `Arturia Serial count is < ${WARNING_COUNT}`;
     if(RUNTEST==0) await sendAdminMail();
   }
-
-  count = await dbAalto.countDocuments({ order_id: '' });
-  console.log('remaining Aalto:'+count);
-  if(count<WARNING_COUNT){
-    gmailOptions.subject = `Aalto Coupon count is < ${WARNING_COUNT}`;
-    gmailOptions.text = `Aalto Coupon count is < ${WARNING_COUNT}`;
-    if(RUNTEST==0) await sendAdminMail();
+ if(dbAalto){
+    count = await dbAalto.countDocuments({ order_id: '' });
+    console.log('remaining Aalto:'+count);
+    if(count<WARNING_COUNT){
+      gmailOptions.subject = `Aalto Coupon count is < ${WARNING_COUNT}`;
+      gmailOptions.text = `Aalto Coupon count is < ${WARNING_COUNT}`;
+      if(RUNTEST==0) await sendAdminMail();
+    }
   }
 }
 
@@ -642,7 +643,8 @@ async function process_reg(req, res) {
     await dbDo(async (db) => {
       dbBitwig = db.collection('bitwig-licenses');
       dbArturia = db.collection('arturia-licenses');
-      //no need to check for Aalto because that is only available through shopify purchase. This is for registration.
+      //no need to check for Aalto because that is only available through shopify purchase. This is for registration. But add this to avoid error
+      //dbAalto = db.collection('aalto-licenses');
       let email = req.body.customer.email;
       console.log('------------------')
       console.log(`email ${email}`)
@@ -655,7 +657,7 @@ async function process_reg(req, res) {
         let auths_needed = {'bitwig_8ts':0, 'arturia_all':0, 'madrona_aalto':0};
         auths_needed.arturia_all = 1;
         auths_needed.bitwig_8ts = 1;
-        
+
         console.log('maybe alive')
         //no need to check for Aalto because that is only available through shopify purchase
         if(auths_needed.arturia_all>0 || auths_needed.bitwig_8ts>0){
