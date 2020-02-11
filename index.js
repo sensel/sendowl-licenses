@@ -35,7 +35,7 @@ let ejs = require('ejs');
 
 let SERVER_PORT = process.env.PORT || 5000;
 //don't actually update the database when testing:
-const TESTING = 1;
+const TESTING = 0;
 //is the app listening to real orders from customers?
 const ISLIVE = process.env.ISLIVE;
 //should we use order data stored in JSON files instead of listening to shopify?
