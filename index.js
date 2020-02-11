@@ -307,6 +307,7 @@ async function soft_auths(req,auth){
   // auth.bitwig_8ts is number of bitwig licenses we need to deliver
   // auth.arturia_all is number of arturia licenses we need to deliver
   let cart = {'arturia_all':[],'bitwig_8ts':[],'madrona_aalto':[]};
+  console.log('also still alive')
   //check if this order ID has been processed. sometimes webhooks send mulitples
 
     console.log(`>> getting authorizations for Arturia: ${auth.arturia_all} and Bitwig: ${auth.bitwig_8ts} and Aalto: ${auth.madrona_aalto} <<`);
@@ -656,6 +657,7 @@ async function process_reg(req, res) {
         auths_needed.bitwig_8ts = 1;
         //no need to check for Aalto because that is only available through shopify purchase
         if(auths_needed.arturia_all>0 || auths_needed.bitwig_8ts>0){
+          console.log('still alive')
           let auth_cart = await soft_auths(req,auths_needed);
           // then email the "cart" of authorizations to customer
           await sendTemplate(auth_cart,email);
