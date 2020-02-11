@@ -34,7 +34,8 @@ let ejs = require('ejs');
 //or in local .env file
 
 let SERVER_PORT = process.env.PORT || 5000;
-
+//don't actually update the database when testing:
+const TESTING = 1;
 //is the app listening to real orders from customers?
 const ISLIVE = process.env.ISLIVE;
 //should we use order data stored in JSON files instead of listening to shopify?
@@ -414,10 +415,13 @@ async function update_db (req,rec_id,db_select){
   const first_name = req.body.customer.first_name;
   const last_name = req.body.customer.last_name;
   const name = first_name+' '+last_name;
-
-  //update database
-  await db_select.updateOne({ _id: rec_id }, { $set: { order_id: o_id, customer_email: email, customer_name: name } });
-  console.log('order_id, customer_email, and customer_name added');
+  if(TESTING){
+    console.log('not updating db, just testing for now');
+  } else {
+    //update database
+    await db_select.updateOne({ _id: rec_id }, { $set: { order_id: o_id, customer_email: email, customer_name: name } });
+    console.log('order_id, customer_email, and customer_name added');
+  }
 }
 
 async function sendTemplate(cart,emailto){
@@ -647,7 +651,7 @@ async function process_reg(req, res) {
 
       //a bit clunky, but cut and pasted from parseOrderInfo():
       if(ISLIVE==1){
-        let auths_needed = {'bitwig_8ts':0, 'arturia_all':0}; //no need for madrona_aalto in here
+        let auths_needed = {'bitwig_8ts':0, 'arturia_all':0, 'madrona_aalto':0};
         auths_needed.arturia_all = 1;
         auths_needed.bitwig_8ts = 1;
         //no need to check for Aalto because that is only available through shopify purchase
