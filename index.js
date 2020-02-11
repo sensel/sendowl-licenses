@@ -652,8 +652,8 @@ async function process_reg(req, res) {
       await check_counts();
       //serial number registered, so we send 1 of each license.
 console.log('------------------');
-      console.log(req.body.extraFields);
-      console.log(req.body.serialNumbers);
+      console.log(req.body.items.extraFields);
+      console.log(req.body.items.serialNumbers);
 console.log('------------------');
       //a bit clunky, but cut and pasted from parseOrderInfo():
       if(ISLIVE==1){
