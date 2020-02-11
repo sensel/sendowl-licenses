@@ -556,7 +556,7 @@ async function check_counts(){
     gmailOptions.text = `Aalto Coupon count is < ${WARNING_COUNT}`;
     if(RUNTEST==0) await sendAdminMail();
   }
-  
+
 }
 
 ///SETUP Email service
@@ -646,12 +646,14 @@ async function process_reg(req, res) {
       //no need to check for Aalto because that is only available through shopify purchase. This is for registration. But add this to avoid error
       dbAalto = db.collection('aalto-licenses');
       let email = req.body.customer.email;
-      console.log('------------------')
+
       console.log(`email ${email}`)
       //make sure we have licenses:
       await check_counts();
       //serial number registered, so we send 1 of each license.
-      console.log('still alive??')
+console.log('------------------')
+      console.log(req.body)
+console.log('------------------')
       //a bit clunky, but cut and pasted from parseOrderInfo():
       if(ISLIVE==1){
         let auths_needed = {'bitwig_8ts':0, 'arturia_all':0, 'madrona_aalto':0};
