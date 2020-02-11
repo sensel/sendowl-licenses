@@ -307,7 +307,6 @@ async function soft_auths(req,auth){
   // auth.bitwig_8ts is number of bitwig licenses we need to deliver
   // auth.arturia_all is number of arturia licenses we need to deliver
   let cart = {'arturia_all':[],'bitwig_8ts':[],'madrona_aalto':[]};
-  console.log('also still alive')
   //check if this order ID has been processed. sometimes webhooks send mulitples
 
     console.log(`>> getting authorizations for Arturia: ${auth.arturia_all} and Bitwig: ${auth.bitwig_8ts} and Aalto: ${auth.madrona_aalto} <<`);
@@ -651,25 +650,25 @@ async function process_reg(req, res) {
       //make sure we have licenses:
       await check_counts();
       //serial number registered, so we send 1 of each license.
-console.log('------------------');
-console.log(JSON.stringify(req.body));
-console.log('------------------');
-console.log(JSON.stringify(req.body.items[0].extraFields[0].value));
-console.log('------------------');
+      let purchasedFrom = JSON.stringify(req.body.items[0].extraFields[0].value).toLowerCase();
+      console.log('purchased from '+purchasedFrom);
+      let fromDirect = purchasedFrom.includes('sensel') || purchasedFrom.includes('direct');
       //a bit clunky, but cut and pasted from parseOrderInfo():
       if(ISLIVE==1){
         let auths_needed = {'bitwig_8ts':0, 'arturia_all':0, 'madrona_aalto':0};
-        auths_needed.arturia_all = 1;
-        auths_needed.bitwig_8ts = 1;
-
-        console.log('maybe alive')
+        let authsCount = 1;
+        if(fromDirect){
+          authsCount = 0;
+        }
+        auths_needed.arturia_all = authsCount;
+        auths_needed.bitwig_8ts = authsCount;
         //no need to check for Aalto because that is only available through shopify purchase
         if(auths_needed.arturia_all>0 || auths_needed.bitwig_8ts>0){
           let auth_cart = await soft_auths(req,auths_needed);
           // then email the "cart" of authorizations to customer
           await sendTemplate(auth_cart,email);
         }else{
-          console.log('no Serials needed for this order');
+          console.log('no Serials needed for this order - bought directly');
         }
       }else{
         console.log(`fake sending licenses to ${email}`)
