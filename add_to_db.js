@@ -11,7 +11,7 @@ const license_sources = {
   'bitwig_test':'bitwig_test.txt'
 };
 let product = 'bitwig';
-let source = '../license sources/'+license_sources[product];
+let source = 'license sources/'+license_sources[product];
 let test = false;
 
 //add argument, for example, 'node add_to_db.js arturia'
@@ -22,9 +22,9 @@ if(process.argv[3]){
 if(process.argv[2]){
   console.log(`source: ${process.argv[2]}`);
   product = process.argv[2];
-  source = '../license sources/'+license_sources[product];
+  source = 'license sources/'+license_sources[product];
   if(test){
-    source = '../license sources/'+license_sources[product+'_test'];
+    source = 'license sources/'+license_sources[product+'_test'];
   }
 }
 
