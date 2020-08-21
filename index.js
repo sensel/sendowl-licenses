@@ -152,6 +152,11 @@ async function ifOrderExists(coll,orderID) {
 async function parseOrderInfo (req,res){
   console.log(`email fields ${req.body.customer.email} ${req.body.contact_email}`);
   let email = req.body.contact_email;
+
+  let tags = JSON.stringify(req.body.tags).toLowerCase();
+  console.log(`tags ${tags}`);
+  let retailcheck = tags.includes('retail');
+
   if (!email){
     email = req.body.customer.email
   }
@@ -165,7 +170,7 @@ async function parseOrderInfo (req,res){
   //when order is scanned, we store counts of auths to send out
   let auths_needed = {'bitwig_8ts':0, 'arturia_all':0,'madrona_aalto':0};
 // `-----done scanning order. need ${auths_needed.arturia_all} Artu
-  console.log(`** Order # ${order_num} from: ${req.body.contact_email} name: ${first_name} ${last_name}`);
+  console.log(`** Order # ${order_num} from: ${req.body.contact_email} name: ${first_name} ${last_name} is retail: ${retailcheck}`);
   let orderExists_art = false;
   let orderExists_bw = false;
   let orderExists_ml = false;
@@ -174,13 +179,18 @@ async function parseOrderInfo (req,res){
     orderExists_bw = await ifOrderExists(dbBitwig,order_num);
     orderExists_ml = await ifOrderExists(dbAalto,order_num);
   }
-  if(orderExists_art || orderExists_bw || orderExists_ml){
-    console.log(`the order ${order_num} has already been assigned codes for Arturia: ${orderExists_art}`);
-    console.log(`the order ${order_num} has already been assigned serials for Bitwig: ${orderExists_bw}`);
-    console.log(`the order ${order_num} has already been assigned codes for Aalto: ${orderExists_ml}`);
-    console.log(`--skipping order scan. need ${auths_needed.arturia_all} Arturia licenses and ${auths_needed.bitwig_8ts} Bitwig licenses and ${auths_needed.madrona_aalto} Madrona codes----`);
+  if(orderExists_art || orderExists_bw || orderExists_ml || retailcheck){
+    //SKIPPING order scan - no codes needed
+    if(retailcheck){
+      console.log(`this is a retail order, skipping codes`)
+    }else{
+      console.log(`the order ${order_num} has already been assigned codes for Arturia: ${orderExists_art}`);
+      console.log(`the order ${order_num} has already been assigned serials for Bitwig: ${orderExists_bw}`);
+      console.log(`the order ${order_num} has already been assigned codes for Aalto: ${orderExists_ml}`);
+      console.log(`--skipping order scan. need ${auths_needed.arturia_all} Arturia licenses and ${auths_needed.bitwig_8ts} Bitwig licenses and ${auths_needed.madrona_aalto} Madrona codes----`);
+    }
   }else{
-    //scan thru order and count the number of auths we'll need.
+    //SCAN thru order and count the number of auths we'll need.
     //then, after scanning pass thru a function that gets all the auths
     for (let i in req.body.line_items){
       const title = req.body.line_items[i]['title'];
@@ -217,8 +227,8 @@ async function parseOrderInfo (req,res){
           }
           //The Everything Bundles - lots of variants! Let's shorten it into a variable:
           let everything_bundle = (sku==='S4015' || sku==='S4016' || sku==='S4017' || sku==='S4018' || sku==='S4019' || sku==='S4020' || sku==='S4021' || sku==='S4022' || sku==='S4023' || sku==='S4024' || sku==='S4025' || sku==='S4026' || sku==='S4027' || sku==='S4028' || sku==='S4029' || sku==='S4030' || sku==='S4031' || sku==='S4032');
-          //Morph + MP,             Piano,          Drum,        Innovator,        Buchla,      MM Bundle
-          let all_and_bw8ts = (everything_bundle || sku==='S4008' || sku==='S4009' || sku==='S4010' || sku==='S4002' || sku==='S4013' || sku ==='S4001'|| sku ==='S4014');
+          //Morph + MP,             Piano,          Drum,        Innovator,        Buchla,      MM Bundle,  Creative Producer (BTO+MP),     MM Bundle with Innovator
+          let all_and_bw8ts = (everything_bundle || sku==='S4008' || sku==='S4009' || sku==='S4010' || sku==='S4002' || sku==='S4013' || sku ==='S4001'|| sku ==='S4014'|| sku ==='S4012');
           let all_only = (sku === "S4007" || sku === "S4011" || sku === "S4003" || sku === "S4004" || sku === "S4005" || sku === "S0002");
           let itemname = skunames[sku];
           if(aalto_bundle){
@@ -251,8 +261,8 @@ async function parseOrderInfo (req,res){
           aalto_bundle=true;
         }
         let everything_bundle = (sku==='S4015' || sku==='S4016' || sku==='S4017' || sku==='S4018' || sku==='S4019' || sku==='S4020' || sku==='S4021' || sku==='S4022' || sku==='S4023' || sku==='S4024' || sku==='S4025' || sku==='S4026' || sku==='S4027' || sku==='S4028' || sku==='S4029' || sku==='S4030' || sku==='S4031' || sku==='S4032');
-        //Morph + MP,             Piano,          Drum,        Innovator,        Buchla,      MM Bundle
-        let all_and_bw8ts = (sku==='S4008' || sku==='S4009' || sku==='S4010' || sku==='S4002' || sku==='S4013' || sku ==='S4001' || everything_bundle);
+        //Morph + MP,             Piano,          Drum,        Innovator,        Buchla,      MM Bundle,    MM Bundle with Innovator ,    Creative Producer (BTO+MP)
+        let all_and_bw8ts = (sku==='S4008' || sku==='S4009' || sku==='S4010' || sku==='S4002' || sku==='S4013' || sku ==='S4001' || sku ==='S4012' || sku ==='S4014' || everything_bundle);
         let all_only = (sku === "S4007" || sku === "S4011" || sku === "S4003" || sku === "S4004" || sku === "S4005" || sku === "S0002");
         let itemname = skunames[sku];
         if(aalto_bundle){
