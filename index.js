@@ -72,6 +72,7 @@ let skunames = {
  "S4003":"QWERTY Keyboard",
  "S4004":"AZERTY Keyboard",
  "S4005":"DVORAK Keyboard",
+ "S4012":"Morph Music Maker's Bundle with Innovator",
  "S4013":"Morph with Buchla Thunder Overlay",
  "S4014":"Creative Producer Kit",
  "S4015" : "Everything - QWERTY Gray WithDevCable",
