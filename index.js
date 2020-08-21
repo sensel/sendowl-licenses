@@ -157,6 +157,7 @@ async function parseOrderInfo (req,res){
   let tags = JSON.stringify(req.body.tags).toLowerCase();
   console.log(`tags ${tags}`);
   let retailcheck = tags.includes('retail');
+  let nosoftcheck = tags.includes('nosoftware');
 
   if (!email){
     email = req.body.customer.email
@@ -171,7 +172,7 @@ async function parseOrderInfo (req,res){
   //when order is scanned, we store counts of auths to send out
   let auths_needed = {'bitwig_8ts':0, 'arturia_all':0,'madrona_aalto':0};
 // `-----done scanning order. need ${auths_needed.arturia_all} Artu
-  console.log(`** Order # ${order_num} from: ${req.body.contact_email} name: ${first_name} ${last_name} is retail: ${retailcheck}`);
+  console.log(`** Order # ${order_num} from: ${req.body.contact_email} name: ${first_name} ${last_name} is retail: ${retailcheck} no software tag ${nosoftcheck}`);
   let orderExists_art = false;
   let orderExists_bw = false;
   let orderExists_ml = false;
@@ -180,10 +181,10 @@ async function parseOrderInfo (req,res){
     orderExists_bw = await ifOrderExists(dbBitwig,order_num);
     orderExists_ml = await ifOrderExists(dbAalto,order_num);
   }
-  if(orderExists_art || orderExists_bw || orderExists_ml || retailcheck){
+  if(orderExists_art || orderExists_bw || orderExists_ml || retailcheck || nosoftcheck){
     //SKIPPING order scan - no codes needed
-    if(retailcheck){
-      console.log(`this is a retail order, skipping codes`)
+    if(retailcheck || nosoftcheck){
+      console.log(`this is a retail order or no software order, skipping codes`)
     }else{
       console.log(`the order ${order_num} has already been assigned codes for Arturia: ${orderExists_art}`);
       console.log(`the order ${order_num} has already been assigned serials for Bitwig: ${orderExists_bw}`);
