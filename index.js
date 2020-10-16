@@ -348,7 +348,7 @@ async function soft_auths(req,auth){
         ml_cart[index] = doc.coupon;
         ids[index] = doc._id;
         index++;
-        console.log(`AALTO COUPON CODES: ${doc.coupon}`);
+        console.log(`AALTO COUPON CODES: ${doc.coupon}`); //beware - others call "coupon" the "serial"
       }
     console.log(`check lengths- cart: ${ml_cart.length} vs needed ${auth.madrona_aalto}`)
     if(ml_cart.length===auth.madrona_aalto){
@@ -373,10 +373,10 @@ async function soft_auths(req,auth){
   if(auth.soniclab_fundamental>0){
     let lic_docs_sl = await dbFundamental.find({ order_id: '' }).limit(auth.soniclab_fundamental);
     for (let doc = await lic_docs_sl.next(); doc != null; doc = await lic_docs_sl.next()) {
-        sl_cart[index] = doc.coupon;
+        sl_cart[index] = doc.serial;
         ids[index] = doc._id;
         index++;
-        console.log(`FUNDAMENTAL COUPON CODES: ${doc.coupon}`);
+        console.log(`FUNDAMENTAL COUPON CODES: ${doc.serial}`);
       }
     console.log(`check lengths- cart: ${sl_cart.length} vs needed ${auth.soniclab_fundamental}`)
     if(sl_cart.length===auth.soniclab_fundamental){
