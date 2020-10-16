@@ -8,7 +8,9 @@ const license_sources = {
   'arturia':'arturia_toenter.txt',
   'bitwig':'bitwig_toenter.txt',
   'arturia_test':'arturia_test.txt',
-  'bitwig_test':'bitwig_test.txt'
+  'bitwig_test':'bitwig_test.txt',
+  'fundamental':'Fundamental_100OFF_Codes_1-200.txt',
+  'fundamental_test':'Fundamental_100OFF_Codes_test.txt'
 };
 let product = 'bitwig';
 let source = 'license sources/'+license_sources[product];
@@ -90,21 +92,6 @@ async function addToBase(db,product) {
   const coll = db.collection(collName);
   let counter = 0;
   console.log(`adding to ${product} from ${sourcePath}`)
-  if(product==='bitwig'){
-    for (let line of lines) {
-      const snum = line.split(',')[0];
-      console.log(`${counter} - adding ${snum}`)
-      await coll.insertOne({
-        "serial":snum,
-        "customer_name":"",
-        "customer_email":"",
-        "order_id":"",
-        "product_id":"",
-        "variant_id":""
-      });
-      counter++;
-    }
-  }
   //arturia has an unlock code AND a serial number for its auth.
   if(product==='arturia'){
     for (let line of lines) {
@@ -122,7 +109,24 @@ async function addToBase(db,product) {
       });
       counter++;
     }
+    //the others are just one code per line, no commas
+  }else{
+    for (let line of lines) {
+      const snum = line.split(',')[0];
+      console.log(`${counter} - adding ${snum}`)
+      await coll.insertOne({
+        "serial":snum,
+        "customer_name":"",
+        "customer_email":"",
+        "order_id":"",
+        "product_id":"",
+        "variant_id":""
+      });
+      counter++;
+    }
   }
+
+
   console.log(product+' completed with '+counter+' records');
 
   await testRead(db, collName);
