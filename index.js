@@ -104,6 +104,7 @@ const dbName = process.env.MONGO_DBNAME
 let dbBitwig;
 let dbArturia;
 let dbAalto;
+let dbFundamental;
 let dbMorphSNs;
 
 // run given doFunc inside a database transaction
@@ -170,18 +171,20 @@ async function parseOrderInfo (req,res){
   const first_name = req.body.customer.first_name;
   const last_name = req.body.customer.last_name;
   //when order is scanned, we store counts of auths to send out
-  let auths_needed = {'bitwig_8ts':0, 'arturia_all':0,'madrona_aalto':0};
+  let auths_needed = {'bitwig_8ts':0, 'arturia_all':0,'madrona_aalto':0,'soniclab_fundamental':0};
 // `-----done scanning order. need ${auths_needed.arturia_all} Artu
   console.log(`** Order # ${order_num} from: ${req.body.contact_email} name: ${first_name} ${last_name} is retail: ${retailcheck} no software tag ${nosoftcheck}`);
   let orderExists_art = false;
   let orderExists_bw = false;
   let orderExists_ml = false;
+  let orderExists_sl = false;
   if(ISLIVE==1){
     orderExists_art = await ifOrderExists(dbArturia,order_num);
     orderExists_bw = await ifOrderExists(dbBitwig,order_num);
     orderExists_ml = await ifOrderExists(dbAalto,order_num);
+    orderExists_sl = await ifOrderExists(dbFundamental,order_num);
   }
-  if(orderExists_art || orderExists_bw || orderExists_ml || retailcheck || nosoftcheck){
+  if(orderExists_art || orderExists_bw || orderExists_sl || orderExists_ml || retailcheck || nosoftcheck){
     //SKIPPING order scan - no codes needed
     if(retailcheck || nosoftcheck){
       console.log(`this is a retail order or no software order, skipping codes`)
@@ -189,7 +192,8 @@ async function parseOrderInfo (req,res){
       console.log(`the order ${order_num} has already been assigned codes for Arturia: ${orderExists_art}`);
       console.log(`the order ${order_num} has already been assigned serials for Bitwig: ${orderExists_bw}`);
       console.log(`the order ${order_num} has already been assigned codes for Aalto: ${orderExists_ml}`);
-      console.log(`--skipping order scan. need ${auths_needed.arturia_all} Arturia licenses and ${auths_needed.bitwig_8ts} Bitwig licenses and ${auths_needed.madrona_aalto} Madrona codes----`);
+      console.log(`the order ${order_num} has already been assigned codes for Fundamental: ${orderExists_sl}`);
+      console.log(`--skipping order scan. need ${auths_needed.arturia_all} Arturia licenses and ${auths_needed.bitwig_8ts} Bitwig licenses and ${auths_needed.madrona_aalto} Madrona codes ${auths_needed.soniclab_fundamental} Fundamental codes----`);
     }
   }else{
     //SCAN thru order and count the number of auths we'll need.
@@ -202,30 +206,18 @@ async function parseOrderInfo (req,res){
       console.log('** Cart Item '+i+': sku '+sku+ ' title '+title+' w/ '+variant+' qty: '+quantity);
 
       //using real products or is a test POST from shopify.
-      // if(ISLIVE==1 || req.body.contact_email==='jon@doe.ca'){
-      //   if(title == 'The Sensel Morph with 1 Overlay'){
-      //     if(variant=='Music Production' || variant=='Piano' || variant=='Drum Pad' || variant=="Innovator's"){
-      //       //provide Arturia and Bitwig code
-      //       auths_needed.bitwig_8ts = auths_needed.bitwig_8ts + quantity;
-      //       auths_needed.arturia_all = auths_needed.arturia_all + quantity;
-      //     }else{
-      //       //provide only Arturia
-      //       auths_needed.arturia_all = auths_needed.arturia_all + quantity;
-      //     }
-      //   }
-      //   if(title == "Morph Music Maker's Bundle"){
-      //     //provide Arturia and Bitwig Codes
-      //     auths_needed.bitwig_8ts = auths_needed.bitwig_8ts + quantity;
-      //     auths_needed.arturia_all = auths_needed.arturia_all + quantity;
-      //   }
-      // }
       if(ISLIVE==1 || req.body.contact_email==='jon@doe.ca'){
           let aalto_bundle = false; //need to figure out if order gets aalto
+          let fundamental_bundle = false; //need to figure out if order gets fundamental
           //title has something like "Morph with Aalto w/ Buchla Thunder" - always has Morph with Aalto
           //can't really do this with SKUs because it's kind of a pain.
           let aalto_check = title.search("Aalto");
           if(aalto_check>-1){
             aalto_bundle=true;
+          }
+          let fundamental_check = title.search("Fundamental");
+          if(fundamental_check>-1){
+            fundamental_bundle=true;
           }
           //The Everything Bundles - lots of variants! Let's shorten it into a variable:
           let everything_bundle = (sku==='S4015' || sku==='S4016' || sku==='S4017' || sku==='S4018' || sku==='S4019' || sku==='S4020' || sku==='S4021' || sku==='S4022' || sku==='S4023' || sku==='S4024' || sku==='S4025' || sku==='S4026' || sku==='S4027' || sku==='S4028' || sku==='S4029' || sku==='S4030' || sku==='S4031' || sku==='S4032');
@@ -238,6 +230,11 @@ async function parseOrderInfo (req,res){
             auths_needed.madrona_aalto = auths_needed.madrona_aalto + quantity;
             auths_needed.bitwig_8ts = auths_needed.bitwig_8ts + quantity;
             auths_needed.arturia_all = auths_needed.arturia_all + quantity;
+          }else if(fundamental_bundle){
+              console.log(`getting sonicLab Fundamental, Analog Lab Lite, and Bitwig  for ${sku} name ${itemname}`);
+              auths_needed.soniclab_fundamental = auths_needed.soniclab_fundamental + quantity;
+              auths_needed.bitwig_8ts = auths_needed.bitwig_8ts + quantity;
+              auths_needed.arturia_all = auths_needed.arturia_all + quantity;
           }else if(all_and_bw8ts){
             console.log(`getting Analog Lab Lite and Bitwig  for ${sku} name ${itemname}`);
             //provide Arturia and Bitwig code
@@ -256,11 +253,16 @@ async function parseOrderInfo (req,res){
         console.log(`## not live ${title}, ${variant}, ${quantity}`)
 
         let aalto_bundle = false; //need to figure out if order gets aalto
+        let fundamental_bundle = false; //need to figure out if order gets fundamental
         //title has something like "Morph with Aalto w/ Buchla Thunder" - always has Morph with Aalto
         //can't really do this with SKUs because it's kind of a pain.
         let aalto_check = title.search("Aalto");
         if(aalto_check>-1){
           aalto_bundle=true;
+        }
+        let fundamental_check = title.search("Fundamental");
+        if(fundamental_check>-1){
+          fundamental_bundle=true;
         }
         let everything_bundle = (sku==='S4015' || sku==='S4016' || sku==='S4017' || sku==='S4018' || sku==='S4019' || sku==='S4020' || sku==='S4021' || sku==='S4022' || sku==='S4023' || sku==='S4024' || sku==='S4025' || sku==='S4026' || sku==='S4027' || sku==='S4028' || sku==='S4029' || sku==='S4030' || sku==='S4031' || sku==='S4032');
         //Morph + MP,             Piano,          Drum,        Innovator,        Buchla,      MM Bundle,    MM Bundle with Innovator ,    Creative Producer (BTO+MP)
@@ -272,6 +274,11 @@ async function parseOrderInfo (req,res){
           auths_needed.madrona_aalto = auths_needed.madrona_aalto + quantity;
           auths_needed.bitwig_8ts = auths_needed.bitwig_8ts + quantity;
           auths_needed.arturia_all = auths_needed.arturia_all + quantity;
+        }else if(fundamental_bundle){
+            console.log(`getting sonicLab Fundamental, Analog Lab Lite, and Bitwig  for ${sku} name ${itemname}`);
+            auths_needed.soniclab_fundamental = auths_needed.soniclab_fundamental + quantity;
+            auths_needed.bitwig_8ts = auths_needed.bitwig_8ts + quantity;
+            auths_needed.arturia_all = auths_needed.arturia_all + quantity;
         }else if(all_and_bw8ts){
           console.log(`getting Analog Lab Lite and Bitwig  for ${sku} name ${itemname}`);
           //provide Arturia and Bitwig code
@@ -299,11 +306,11 @@ async function parseOrderInfo (req,res){
       }
 
     }//end order scan
-    console.log(`-----done scanning order. need ${auths_needed.arturia_all} Arturia licenses and ${auths_needed.bitwig_8ts} Bitwig licenses and ${auths_needed.madrona_aalto} Madrona Aalto codes----`);
+    console.log(`-----done scanning order. need ${auths_needed.arturia_all} Arturia licenses and ${auths_needed.bitwig_8ts} Bitwig licenses and ${auths_needed.madrona_aalto} Madrona Aalto codes and ${auths_needed.soniclab_fundamental} sonicLab Fundamental codes ${auths_needed.soniclab_fundamental} ----`);
   }
   if(ISLIVE==1){
     //now go through db and get the auth keys as needed
-    if(auths_needed.arturia_all>0 || auths_needed.bitwig_8ts>0 || auths_needed.madrona_aalto>0){
+    if(auths_needed.arturia_all>0 || auths_needed.bitwig_8ts>0 || auths_needed.madrona_aalto>0 || auths_needed.soniclab_fundamental){
       let auth_cart = await soft_auths(req,auths_needed);
       // then email the "cart" of authorizations to customer
       await sendTemplate(auth_cart,email);
@@ -321,7 +328,7 @@ async function soft_auths(req,auth){
   let cart = {'arturia_all':[],'bitwig_8ts':[],'madrona_aalto':[]};
   //check if this order ID has been processed. sometimes webhooks send mulitples
 
-    console.log(`>> getting authorizations for Arturia: ${auth.arturia_all} and Bitwig: ${auth.bitwig_8ts} and Aalto: ${auth.madrona_aalto} <<`);
+    console.log(`>> getting authorizations for Arturia: ${auth.arturia_all} and Bitwig: ${auth.bitwig_8ts} and Aalto: ${auth.madrona_aalto} Fundamental: ${auth.soniclab_fundamental}  <<`);
 
     // find the first record where there is no order ID ('lic_docs'), get the license info,
     // then update entry with the new info
@@ -356,6 +363,34 @@ async function soft_auths(req,auth){
     }
   }else{
     console.log('No Aalto auths needed')
+  }
+
+
+  //find the sonicLab Fundamental auths
+  let sl_cart = [];
+  ids = [];
+  index = 0;
+  if(auth.soniclab_fundamental>0){
+    let lic_docs_sl = await dbFundamental.find({ order_id: '' }).limit(auth.soniclab_fundamental);
+    for (let doc = await lic_docs_sl.next(); doc != null; doc = await lic_docs_sl.next()) {
+        sl_cart[index] = doc.coupon;
+        ids[index] = doc._id;
+        index++;
+        console.log(`FUNDAMENTAL COUPON CODES: ${doc.coupon}`);
+      }
+    console.log(`check lengths- cart: ${sl_cart.length} vs needed ${auth.soniclab_fundamental}`)
+    if(sl_cart.length===auth.soniclab_fundamental){
+      let j = 0;
+      for(let i in sl_cart){
+        await update_db(req,ids[i],dbFundamental);
+        console.log(`++ Fundamental sn is ${sl_cart[i]}`);
+      }
+    }else{
+      console.log('Need More Fundamental Codes');
+      sl_cart = -1;
+    }
+  }else{
+    console.log('No Fundamental auths needed')
   }
 
   //find Arturia auths
@@ -411,9 +446,10 @@ async function soft_auths(req,auth){
   cart.arturia_all = art_cart;
   cart.bitwig_8ts = bw_cart;
   cart.madrona_aalto = ml_cart;
+  cart.soniclab_fundamental = sl_cart;
 
-  console.log(`>> lengths: ${cart.arturia_all.length} , ${cart.bitwig_8ts.length} , ${cart.madrona_aalto.length}`);
-  console.log(`>> contents: ${cart.arturia_all} , ${cart.bitwig_8ts} , ${cart.madrona_aalto}`);
+  console.log(`>> lengths: ${cart.arturia_all.length} , ${cart.bitwig_8ts.length} , ${cart.madrona_aalto.length}, ${cart.soniclab_fundamental.length}`);
+  console.log(`>> contents: ${cart.arturia_all} , ${cart.bitwig_8ts} , ${cart.madrona_aalto}, ${cart.soniclab_fundamental}`);
   return cart;
 }
 
@@ -441,8 +477,9 @@ async function sendTemplate(cart,emailto){
   let art_uc = '';
   let bw_sn =  '';
   let mla_cc = '';
+  let sla_cc = '';
   let tempFile = '';
-  console.log(`>> contents: ${cart.arturia_all} , ${cart.bitwig_8ts} , ${cart.madrona_aalto}`);
+  console.log(`>> contents: ${cart.arturia_all} , ${cart.bitwig_8ts} , ${cart.madrona_aalto}, ${cart.soniclab_fundamental}`);
   if(cart.arturia_all != -1){
     // create strings of the auth codes from the cart
     for(let i in cart.arturia_all){
@@ -467,18 +504,32 @@ async function sendTemplate(cart,emailto){
   }else{
     mla_cc = 'please contact <a href="mailto:support@sensel.com">support@sensel.com</a> for your Madrona Labs Aalto coupon code.'
   }
+  if(cart.soniclab_fundamental != -1){
+    for(let i in cart.soniclab_fundamental){
+      sla_cc += cart.soniclab_fundamental[i]+' <br>';
+    }
+  }else{
+    mla_cc = 'please contact <a href="mailto:support@sensel.com">support@sensel.com</a> for your Madrona Labs Aalto coupon code.'
+  }
 
 //splice_code is perfuntory. Keeping it for an example or future re-engagement
-  let templateData = { bitwig_sn: bw_sn, arturia_sn: art_sn, arturia_uc: art_uc, aalto_coupon:mla_cc, madrona_name:'',arturia_name:'',bitwig_name:'',splice_code:'splicesenselholiday'};
+  let templateData = { bitwig_sn: bw_sn, arturia_sn: art_sn, arturia_uc: art_uc, aalto_coupon:mla_cc,fundamental_coupon:sla_cc, madrona_name:'',fundamental_name:'',arturia_name:'',bitwig_name:'',splice_code:'splicesenselholiday'};
   // console.log(`arturia : ${art_sn} , ${art_uc} - bitwig : ${bw_sn}`)
 
   //figure out what email template to use. -1 means we are out of numbers, but customer still should get one.
+  //all == Analog Lab Lite, bw-s8t == Bitwig studio 8 track,  aalto = Aalto, slfun == sonicLab fundamental
   if(cart.madrona_aalto.length > 0 || cart.madrona_aalto == -1){
     templateData.madrona_name = 'Madrona Labs';
     templateData.bitwig_name = 'Bitwig';
     templateData.arturia_name = 'and Arturia';
     tempFile = 'art-all_bw-s8t-aalto.ejs';
     console.log('using email template for madrona, arturia and bitwig ');
+  }else if(cart.soniclab_fundamental.length > 0 || cart.soniclab_fundamental == -1){
+    templateData.fundamental_name = 'sonicLab Fundamental';
+    templateData.bitwig_name = 'Bitwig';
+    templateData.arturia_name = 'and Arturia';
+    tempFile = 'art-all_bw-s8t-slfun.ejs';
+    console.log('using email template for fundamental, arturia and bitwig ');
   } else if(cart.bitwig_8ts.length > 0 || cart.bitwig_8ts == -1){
     templateData.bitwig_name = 'Bitwig';
     templateData.arturia_name = 'and Arturia';
@@ -569,6 +620,14 @@ async function check_counts(){
     if(RUNTEST==0) await sendAdminMail();
   }
 
+  count = await dbFundamental.countDocuments({ order_id: '' });
+  console.log('remaining Fundamental:'+count);
+  if(count<WARNING_COUNT){
+    gmailOptions.subject = `Fundamental Coupon count is < ${WARNING_COUNT}`;
+    gmailOptions.text = `Fundamental Coupon count is < ${WARNING_COUNT}`;
+    if(RUNTEST==0) await sendAdminMail();
+  }
+
 }
 
 ///SETUP Email service
@@ -635,6 +694,7 @@ async function process_post(req, res) {
       dbBitwig = db.collection('bitwig-licenses');
       dbArturia = db.collection('arturia-licenses');
       dbAalto = db.collection('aalto-licenses');
+      dbFundamental = db.collection('fundamental-licenses');
       await check_counts();
       //Order came from Shopify, so we'll parse the info and email the customer relevant software licenses.
       await parseOrderInfo(req,res);
@@ -657,6 +717,7 @@ async function process_reg(req, res) {
       dbArturia = db.collection('arturia-licenses');
       //no need to check for Aalto because that is only available through shopify purchase. This is for registration. But add this to avoid error
       dbAalto = db.collection('aalto-licenses');
+      dbFundamental = db.collection('fundamental-licenses');
       let email = req.body.customer.email;
 
       console.log(`email ${email}`)
@@ -668,7 +729,7 @@ async function process_reg(req, res) {
       let fromDirect = purchasedFrom.includes('sensel') || purchasedFrom.includes('direct');
       //a bit clunky, but cut and pasted from parseOrderInfo():
       if(ISLIVE==1){
-        let auths_needed = {'bitwig_8ts':0, 'arturia_all':0, 'madrona_aalto':0};
+        let auths_needed = {'bitwig_8ts':0, 'arturia_all':0, 'madrona_aalto':0, 'soniclab_fundamental':0};
         let authsCount = 1;
         if(fromDirect){
           authsCount = 0;
@@ -696,6 +757,7 @@ async function main() {
     dbBitwig = db.collection('bitwig-licenses');
     dbArturia = db.collection('arturia-licenses');
     dbAalto = db.collection('aalto-licenses');
+    dbFundamental = db.collection('fundamental-licenses');
     //not currently using SNs, but here for future ref:
     dbMorphSNs = db.collection('morph-serials');
     //check the serial counts on start:
@@ -742,7 +804,9 @@ async function readTest(file) {
     // test_order_morphbundle_complete.json
     // test_order_morphbundle.json
     // test_order_senseltestpiano.json
-    fs.readFile('testorders/test_order_morphbundle_aalto.json', 'utf8', (err, data) => {
+    // test_order_morphbundle_aalto.json
+    // test_order_morphbundle_fundamental.json
+    fs.readFile('testorders/test_order_morphbundle_fundamental.json', 'utf8', (err, data) => {
       if (err) reject(err);
       else resolve(data);
     });
