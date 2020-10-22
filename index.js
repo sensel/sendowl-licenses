@@ -231,7 +231,7 @@ async function parseOrderInfo (req,res){
             auths_needed.bitwig_8ts = auths_needed.bitwig_8ts + quantity;
             auths_needed.arturia_all = auths_needed.arturia_all + quantity;
           }else if(fundamental_bundle){
-              console.log(`getting sonicLab Fundamental, Analog Lab Lite, and Bitwig  for ${sku} name ${itemname}`);
+              console.log(`getting sonicLAB Fundamental, Analog Lab Lite, and Bitwig  for ${sku} name ${itemname}`);
               auths_needed.soniclab_fundamental = auths_needed.soniclab_fundamental + quantity;
               auths_needed.bitwig_8ts = auths_needed.bitwig_8ts + quantity;
               auths_needed.arturia_all = auths_needed.arturia_all + quantity;
@@ -275,7 +275,7 @@ async function parseOrderInfo (req,res){
           auths_needed.bitwig_8ts = auths_needed.bitwig_8ts + quantity;
           auths_needed.arturia_all = auths_needed.arturia_all + quantity;
         }else if(fundamental_bundle){
-            console.log(`getting sonicLab Fundamental, Analog Lab Lite, and Bitwig  for ${sku} name ${itemname}`);
+            console.log(`getting sonicLAB Fundamental, Analog Lab Lite, and Bitwig  for ${sku} name ${itemname}`);
             auths_needed.soniclab_fundamental = auths_needed.soniclab_fundamental + quantity;
             auths_needed.bitwig_8ts = auths_needed.bitwig_8ts + quantity;
             auths_needed.arturia_all = auths_needed.arturia_all + quantity;
@@ -306,7 +306,7 @@ async function parseOrderInfo (req,res){
       }
 
     }//end order scan
-    console.log(`-----done scanning order. need ${auths_needed.arturia_all} Arturia licenses and ${auths_needed.bitwig_8ts} Bitwig licenses and ${auths_needed.madrona_aalto} Madrona Aalto codes and ${auths_needed.soniclab_fundamental} sonicLab Fundamental codes ${auths_needed.soniclab_fundamental} ----`);
+    console.log(`-----done scanning order. need ${auths_needed.arturia_all} Arturia licenses and ${auths_needed.bitwig_8ts} Bitwig licenses and ${auths_needed.madrona_aalto} Madrona Aalto codes and ${auths_needed.soniclab_fundamental} sonicLAB Fundamental codes ${auths_needed.soniclab_fundamental} ----`);
   }
   if(ISLIVE==1){
     //now go through db and get the auth keys as needed
@@ -525,7 +525,7 @@ async function sendTemplate(cart,emailto){
     tempFile = 'art-all_bw-s8t-aalto.ejs';
     console.log('using email template for madrona, arturia and bitwig ');
   }else if(cart.soniclab_fundamental.length > 0 || cart.soniclab_fundamental == -1){
-    templateData.fundamental_name = 'sonicLab Fundamental';
+    templateData.fundamental_name = 'sonicLAB Fundamental';
     templateData.bitwig_name = 'Bitwig';
     templateData.arturia_name = 'and Arturia';
     tempFile = 'art-all_bw-s8t-slfun.ejs';
